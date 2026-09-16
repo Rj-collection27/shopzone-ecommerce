@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Manage Orders</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="admin-orders-page">
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="admin-header">
+
+    <div class="admin-logo">
+
+      <span class="admin-logo-icon">S</span>
+
+      <div>
+        <h1>ShopZone</h1>
+        <span>Admin Panel</span>
+      </div>
+
+    </div>
+
+
+    <nav class="admin-nav">
+
+      <a href="index.html">
+        Dashboard
+      </a>
+
+      <a href="products.html">
+        Products
+      </a>
+
+      <a href="orders.html" class="active">
+        Orders
+      </a>
+
+      <a href="users.html">
+        Users
+      </a>
+
+      <a href="categories.html">
+        Categories
+      </a>
+
+      <a href="../index.html" class="store-link">
+        Store ↗
+      </a>
+
+      <!-- LOGOUT -->
+
+      <button
+        type="button"
+        class="admin-logout-btn"
+        onclick="logoutAdmin()"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- ================= MAIN ================= -->
+
+  <main class="admin-orders-main">
+
+    <!-- PAGE HEADING -->
+
+    <section class="admin-page-heading">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          ORDER MANAGEMENT
+        </span>
+
+        <h2>
+          Manage Orders
+        </h2>
+
+        <p>
+          View customer orders and update their delivery status.
+        </p>
+
+      </div>
+
+
+      <div class="orders-count-box">
+
+        <span>
+          Total Orders
+        </span>
+
+        <strong id="total-orders">
+          0
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= ORDER SUMMARY ================= -->
+
+    <section class="order-summary-grid">
+
+      <!-- PENDING -->
+
+      <div class="order-summary-card">
+
+        <span class="summary-icon pending-icon">
+          ⏳
+        </span>
+
+        <div>
+
+          <span>
+            Pending
+          </span>
+
+          <strong id="pending-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONFIRMED -->
+
+      <div class="order-summary-card">
+
+        <span class="summary-icon confirmed-icon">
+          ✓
+        </span>
+
+        <div>
+
+          <span>
+            Confirmed
+          </span>
+
+          <strong id="confirmed-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- SHIPPED -->
+
+      <div class="order-summary-card">
+
+        <span class="summary-icon shipped-icon">
+          🚚
+        </span>
+
+        <div>
+
+          <span>
+            Shipped
+          </span>
+
+          <strong id="shipped-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- DELIVERED -->
+
+      <div class="order-summary-card">
+
+        <span class="summary-icon delivered-icon">
+          ✓
+        </span>
+
+        <div>
+
+          <span>
+            Delivered
+          </span>
+
+          <strong id="delivered-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- CANCELLED -->
+
+      <div class="order-summary-card">
+
+        <span class="summary-icon cancelled-icon">
+          ×
+        </span>
+
+        <div>
+
+          <span>
+            Cancelled
+          </span>
+
+          <strong id="cancelled-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= SEARCH ================= -->
+
+    <section class="orders-toolbar">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          ALL ORDERS
+        </span>
+
+        <h3>
+          Customer Orders
+        </h3>
+
+      </div>
+
+
+      <div class="orders-search">
+
+        <span>
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          id="order-search"
+          placeholder="Search by customer, email or order ID..."
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= ORDERS ================= -->
+
+    <section>
+
+      <div id="orders-list">
+
+        <div class="orders-loading">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading orders...
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="admin-footer">
+
+    <p>
+      © 2026 ShopZone Admin Panel
+    </p>
+
+    <span>
+      Secure Order Management
+    </span>
+
+  </footer>
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script>
+
+    /* =====================================================
+       ADMIN PROTECTION
+    ===================================================== */
+
+    const admin =
+      JSON.parse(
+        localStorage.getItem("admin")
+      );
+
+
+    const adminToken =
+      localStorage.getItem(
+        "adminToken"
+      );
+
+
+    if (
+      !admin ||
+      admin.role !== "admin" ||
+      !adminToken
+    ) {
+
+      alert(
+        "Access denied! Admin only."
+      );
+
+      window.location.href =
+        "login.html";
+
+    }
+
+
+    let allOrders = [];
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    function logoutAdmin() {
+
+      const confirmLogout =
+        confirm(
+          "Are you sure you want to logout?"
+        );
+
+
+      if (!confirmLogout) {
+        return;
+      }
+
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+
+      window.location.href =
+        "/admin/login.html";
+
+    }
+
+
+    /* =====================================================
+       LOAD ORDERS
+    ===================================================== */
+
+    async function loadOrders() {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/orders",
+            {
+              headers: {
+
+                "Authorization":
+                  "Bearer " +
+                  localStorage.getItem(
+                    "adminToken"
+                  )
+
+              }
+            }
+          );
+
+
+        if (!response.ok) {
+
+          if (
+            response.status === 401 ||
+            response.status === 403
+          ) {
+
+            localStorage.removeItem(
+              "adminToken"
+            );
+
+            localStorage.removeItem(
+              "admin"
+            );
+
+            alert(
+              "Your admin session has expired. Please login again."
+            );
+
+            window.location.href =
+              "/admin/login.html";
+
+            return;
+
+          }
+
+
+          throw new Error(
+            "Failed to load orders"
+          );
+
+        }
+
+
+        const orders =
+          await response.json();
+
+
+        allOrders =
+          Array.isArray(orders)
+            ? orders
+            : [];
+
+
+        updateOrderSummary(
+          allOrders
+        );
+
+
+        displayOrders(
+          allOrders
+        );
+
+
+      } catch (error) {
+
+        console.log(
+          "Error loading orders:",
+          error
+        );
+
+
+        document
+          .getElementById(
+            "orders-list"
+          )
+          .innerHTML = `
+
+            <div class="orders-error">
+
+              <div>
+                ⚠️
+              </div>
+
+              <h3>
+                Unable to load orders
+              </h3>
+
+              <p>
+                Please make sure the server is running.
+              </p>
+
+              <button
+                onclick="loadOrders()"
+              >
+                Try Again
+              </button>
+
+            </div>
+
+          `;
+
+      }
+
+    }
+
+
+    /* =====================================================
+       ORDER SUMMARY
+    ===================================================== */
+
+    function updateOrderSummary(
+      orders
+    ) {
+
+      document
+        .getElementById(
+          "total-orders"
+        )
+        .textContent =
+        orders.length;
+
+
+      const pending =
+        orders.filter(
+          order =>
+            order.status ===
+            "Pending"
+        ).length;
+
+
+      const confirmed =
+        orders.filter(
+          order =>
+            order.status ===
+            "Confirmed"
+        ).length;
+
+
+      const shipped =
+        orders.filter(
+          order =>
+            order.status ===
+            "Shipped"
+        ).length;
+
+
+      const delivered =
+        orders.filter(
+          order =>
+            order.status ===
+            "Delivered"
+        ).length;
+
+
+      const cancelled =
+        orders.filter(
+          order =>
+            order.status ===
+            "Cancelled"
+        ).length;
+
+
+      document
+        .getElementById(
+          "pending-count"
+        )
+        .textContent =
+        pending;
+
+
+      document
+        .getElementById(
+          "confirmed-count"
+        )
+        .textContent =
+        confirmed;
+
+
+      document
+        .getElementById(
+          "shipped-count"
+        )
+        .textContent =
+        shipped;
+
+
+      document
+        .getElementById(
+          "delivered-count"
+        )
+        .textContent =
+        delivered;
+
+
+      document
+        .getElementById(
+          "cancelled-count"
+        )
+        .textContent =
+        cancelled;
+
+    }
+
+
+    /* =====================================================
+       DISPLAY ORDERS
+    ===================================================== */
+
+    function displayOrders(
+      orders
+    ) {
+
+      const ordersList =
+        document.getElementById(
+          "orders-list"
+        );
+
+
+      ordersList.innerHTML = "";
+
+
+      if (
+        orders.length === 0
+      ) {
+
+        ordersList.innerHTML = `
+
+          <div class="orders-empty">
+
+            <div>
+              📦
+            </div>
+
+            <h3>
+              No Orders Found
+            </h3>
+
+            <p>
+              There are currently no orders matching your search.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      orders.forEach(
+        (order) => {
+
+          const orderCard =
+            document.createElement(
+              "div"
+            );
+
+
+          orderCard.className =
+            "admin-order-card";
+
+
+          const statusClass =
+            String(
+              order.status ||
+              "Pending"
+            )
+              .toLowerCase();
+
+
+          const paymentClass =
+            String(
+              order.paymentMethod ||
+              ""
+            )
+              .toLowerCase()
+              .includes("cod")
+              ? "cod-payment"
+              : "online-payment";
+
+
+          let orderDate =
+            "Date unavailable";
+
+
+          if (
+            order.createdAt
+          ) {
+
+            orderDate =
+              new Date(
+                order.createdAt
+              ).toLocaleString(
+                "en-IN",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }
+              );
+
+          }
+
+
+          const itemsHTML =
+            order.items &&
+            order.items.length > 0
+
+              ? order.items.map(
+                  (item) => `
+
+                    <div class="order-item">
+
+                      <div class="order-item-info">
+
+                        <strong>
+                          ${item.name || "Product"}
+                        </strong>
+
+                        <span>
+                          Qty: ${item.quantity || 0}
+                        </span>
+
+                      </div>
+
+
+                      <strong class="order-item-price">
+
+                        ₹${(
+                          Number(
+                            item.price || 0
+                          ) *
+                          Number(
+                            item.quantity || 0
+                          )
+                        ).toLocaleString(
+                          "en-IN"
+                        )}
+
+                      </strong>
+
+                    </div>
+
+                  `
+                ).join("")
+
+              : `
+
+                  <p class="no-items">
+                    No product details available.
+                  </p>
+
+                `;
+
+
+          orderCard.innerHTML = `
+
+            <!-- ================= ORDER TOP ================= -->
+
+            <div class="order-card-header">
+
+              <div>
+
+                <span class="order-label">
+                  ORDER ID
+                </span>
+
+                <h3>
+                  #${order._id}
+                </h3>
+
+                <span class="order-date">
+                  ${orderDate}
+                </span>
+
+              </div>
+
+
+              <span
+                class="order-status-badge ${statusClass}"
+              >
+                ${order.status || "Pending"}
+              </span>
+
+            </div>
+
+
+            <!-- ================= CUSTOMER + PAYMENT ================= -->
+
+            <div class="order-info-grid">
+
+              <div class="order-info-box">
+
+                <span class="order-info-label">
+                  CUSTOMER
+                </span>
+
+                <strong>
+                  👤 ${order.customerName || "Customer"}
+                </strong>
+
+                <span>
+                  ${order.email || "No email"}
+                </span>
+
+                <span>
+                  ${order.phone || "No phone"}
+                </span>
+
+              </div>
+
+
+              <div class="order-info-box">
+
+                <span class="order-info-label">
+                  DELIVERY ADDRESS
+                </span>
+
+                <strong>
+                  📍 Delivery Address
+                </strong>
+
+                <span>
+                  ${order.address || "No address available"}
+                </span>
+
+              </div>
+
+
+              <div class="order-info-box">
+
+                <span class="order-info-label">
+                  PAYMENT
+                </span>
+
+                <strong
+                  class="${paymentClass}"
+                >
+                  ${order.paymentMethod || "Unknown"}
+                </strong>
+
+                <span>
+                  Payment Method
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- ================= PRODUCTS ================= -->
+
+            <div class="order-products-section">
+
+              <div class="order-products-heading">
+
+                <h4>
+                  Products
+                </h4>
+
+                <span>
+                  ${
+                    order.items
+                      ? order.items.length
+                      : 0
+                  }
+                  item(s)
+                </span>
+
+              </div>
+
+
+              <div class="order-items-list">
+
+                ${itemsHTML}
+
+              </div>
+
+            </div>
+
+
+            <!-- ================= BOTTOM ================= -->
+
+            <div class="order-card-bottom">
+
+              <div class="order-total">
+
+                <span>
+                  TOTAL AMOUNT
+                </span>
+
+                <strong>
+                  ₹${Number(
+                    order.totalAmount || 0
+                  ).toLocaleString(
+                    "en-IN"
+                  )}
+                </strong>
+
+              </div>
+
+
+              <div class="order-status-control">
+
+                <label>
+                  Update Status
+                </label>
+
+
+                <select
+                  onchange="
+                    updateOrderStatus(
+                      '${order._id}',
+                      this.value
+                    )
+                  "
+                >
+
+                  <option
+                    value="Pending"
+                    ${
+                      order.status ===
+                      "Pending"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Pending
+                  </option>
+
+
+                  <option
+                    value="Confirmed"
+                    ${
+                      order.status ===
+                      "Confirmed"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Confirmed
+                  </option>
+
+
+                  <option
+                    value="Shipped"
+                    ${
+                      order.status ===
+                      "Shipped"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Shipped
+                  </option>
+
+
+                  <option
+                    value="Delivered"
+                    ${
+                      order.status ===
+                      "Delivered"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Delivered
+                  </option>
+
+
+                  <option
+                    value="Cancelled"
+                    ${
+                      order.status ===
+                      "Cancelled"
+                        ? "selected"
+                        : ""
+                    }
+                  >
+                    Cancelled
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+          `;
+
+
+          ordersList.appendChild(
+            orderCard
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       UPDATE ORDER STATUS
+    ===================================================== */
+
+    async function updateOrderStatus(
+      orderId,
+      status
+    ) {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/orders/" +
+              orderId,
+            {
+
+              method: "PUT",
+
+              headers: {
+
+                "Content-Type":
+                  "application/json",
+
+                "Authorization":
+                  "Bearer " +
+                  localStorage.getItem(
+                    "adminToken"
+                  )
+
+              },
+
+              body:
+                JSON.stringify({
+                  status: status
+                })
+
+            }
+          );
+
+
+        if (
+          response.ok
+        ) {
+
+          alert(
+            "Order status updated successfully!"
+          );
+
+
+          loadOrders();
+
+        } else {
+
+          const errorData =
+            await response.json();
+
+
+          console.log(
+            "STATUS UPDATE ERROR:",
+            errorData
+          );
+
+
+          if (
+            response.status === 401 ||
+            response.status === 403
+          ) {
+
+            localStorage.removeItem(
+              "adminToken"
+            );
+
+            localStorage.removeItem(
+              "admin"
+            );
+
+            alert(
+              "Admin session expired. Please login again."
+            );
+
+            window.location.href =
+              "/admin/login.html";
+
+            return;
+
+          }
+
+
+          alert(
+            "Failed to update order status!\n\n" +
+            (
+              errorData.message ||
+              "Unknown error"
+            )
+          );
+
+        }
+
+      } catch (error) {
+
+        console.log(
+          "Error:",
+          error
+        );
+
+
+        alert(
+          "Something went wrong!"
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       SEARCH
+    ===================================================== */
+
+    document
+      .getElementById(
+        "order-search"
+      )
+      .addEventListener(
+        "input",
+        function() {
+
+          const search =
+            this.value
+              .toLowerCase()
+              .trim();
+
+
+          const filteredOrders =
+            allOrders.filter(
+              order => {
+
+                const customer =
+                  String(
+                    order.customerName ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                const email =
+                  String(
+                    order.email ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                const orderId =
+                  String(
+                    order._id ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                return (
+                  customer.includes(
+                    search
+                  ) ||
+                  email.includes(
+                    search
+                  ) ||
+                  orderId.includes(
+                    search
+                  )
+                );
+
+              }
+            );
+
+
+          displayOrders(
+            filteredOrders
+          );
+
+        }
+      );
+
+
+    /* =====================================================
+       INITIAL LOAD
+    ===================================================== */
+
+    loadOrders();
+
+  </script>
+
+</body>
+
+</html>

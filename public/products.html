@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Products</title>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="main-header">
+
+    <div class="logo">
+      <h1>ShopZone</h1>
+    </div>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">Cart 🛒</a>
+      <a href="wishlist.html">Wishlist ❤️</a>
+      <a href="login.html">Login</a>
+    </nav>
+
+  </header>
+
+
+  <!-- ================= PRODUCTS ================= -->
+
+  <main>
+
+    <section class="products">
+
+      <div class="section-heading">
+
+        <div>
+          <span>SHOPZONE COLLECTION</span>
+          <h2>All Products</h2>
+        </div>
+
+      </div>
+
+
+      <!-- ================= SEARCH & SORT ================= -->
+
+      <div class="product-tools">
+
+        <div class="search-box">
+
+          <input
+            type="text"
+            id="search-input"
+            placeholder="🔍 Search products..."
+          >
+
+        </div>
+
+
+        <div class="sort-box">
+
+          <label for="sort-select">Sort:</label>
+
+          <select id="sort-select">
+
+            <option value="default">
+              Default
+            </option>
+
+            <option value="low">
+              Price: Low to High
+            </option>
+
+            <option value="high">
+              Price: High to Low
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= CATEGORY FILTER ================= -->
+
+      <div class="category-filter">
+
+        <p>Filter by Category</p>
+
+        <div id="category-buttons">
+          <!-- Categories will appear automatically -->
+        </div>
+
+      </div>
+
+
+      <!-- ================= PRODUCTS ================= -->
+
+      <div id="product-list">
+        <!-- Products will appear here -->
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer>
+
+    <div class="footer-content">
+
+      <div class="footer-brand">
+
+        <h2>ShopZone</h2>
+
+        <p>
+          Your trusted online shopping destination
+          for quality products at great prices.
+        </p>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>Quick Links</h3>
+
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="cart.html">Cart</a>
+        <a href="wishlist.html">Wishlist</a>
+        <a href="login.html">Login</a>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>Customer</h3>
+
+        <a href="track-order.html">Track Order</a>
+        <a href="checkout.html">Checkout</a>
+
+      </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>© 2026 ShopZone. All rights reserved.</p>
+
+    </div>
+
+  </footer>
+
+
+  <!-- Existing product functionality -->
+
+  <script src="js/app.js"></script>
+
+
+  <!-- ================= FILTER / SEARCH / SORT / WISHLIST ================= -->
+
+  <script>
+
+    let filterReady = false;
+
+    let selectedCategory = "All";
+
+    let searchText = "";
+
+    let selectedSort = "default";
+
+
+    // ================= WISHLIST =================
+
+    let wishlist =
+      JSON.parse(localStorage.getItem("wishlist")) || [];
+
+
+    function toggleWishlist(productId, button) {
+
+      const index =
+        wishlist.indexOf(productId);
+
+
+      if (index === -1) {
+
+        wishlist.push(productId);
+
+        button.innerText = "♥";
+
+        button.classList.add("wishlisted");
+
+      } else {
+
+        wishlist.splice(index, 1);
+
+        button.innerText = "♡";
+
+        button.classList.remove("wishlisted");
+
+      }
+
+
+      localStorage.setItem(
+        "wishlist",
+        JSON.stringify(wishlist)
+      );
+
+    }
+
+
+    function updateWishlistButtons() {
+
+      document
+        .querySelectorAll(".wishlist-btn")
+        .forEach(button => {
+
+          const onclickText =
+            button.getAttribute("onclick");
+
+          const match =
+            onclickText.match(/'([^']+)'/);
+
+
+          if (!match) {
+            return;
+          }
+
+
+          const productId =
+            match[1];
+
+
+          if (wishlist.includes(productId)) {
+
+            button.innerText = "♥";
+
+            button.classList.add("wishlisted");
+
+          } else {
+
+            button.innerText = "♡";
+
+            button.classList.remove("wishlisted");
+
+          }
+
+        });
+
+    }
+
+
+    // ================= CATEGORY FILTER =================
+
+    function setupCategoryFilter() {
+
+      if (!window.products || filterReady) {
+        return;
+      }
+
+
+      filterReady = true;
+
+
+      const categoryButtons =
+        document.getElementById("category-buttons");
+
+
+      const categories = [
+        "All",
+        ...new Set(
+          window.products.map(
+            product => product.category
+          )
+        )
+      ];
+
+
+      categories.forEach(category => {
+
+        const button =
+          document.createElement("button");
+
+
+        button.innerText = category;
+
+
+        button.className =
+          category === "All"
+            ? "category-btn active"
+            : "category-btn";
+
+
+        button.onclick = function () {
+
+          selectedCategory = category;
+
+
+          document
+            .querySelectorAll(".category-btn")
+            .forEach(btn => {
+
+              btn.classList.remove("active");
+
+            });
+
+
+          button.classList.add("active");
+
+
+          applyFilters();
+
+        };
+
+
+        categoryButtons.appendChild(button);
+
+      });
+
+
+      applyFilters();
+
+    }
+
+
+    // ================= APPLY FILTERS =================
+
+    function applyFilters() {
+
+      if (!window.products) {
+        return;
+      }
+
+
+      let filteredProducts =
+        [...window.products];
+
+
+      // Category filter
+
+      if (selectedCategory !== "All") {
+
+        filteredProducts =
+          filteredProducts.filter(product =>
+            product.category === selectedCategory
+          );
+
+      }
+
+
+      // Search filter
+
+      if (searchText.trim() !== "") {
+
+        filteredProducts =
+          filteredProducts.filter(product => {
+
+            const name =
+              product.name.toLowerCase();
+
+            const category =
+              product.category.toLowerCase();
+
+            const description =
+              product.description.toLowerCase();
+
+
+            return (
+              name.includes(searchText) ||
+              category.includes(searchText) ||
+              description.includes(searchText)
+            );
+
+          });
+
+      }
+
+
+      // Price sorting
+
+      if (selectedSort === "low") {
+
+        filteredProducts.sort(
+          (a, b) => a.price - b.price
+        );
+
+      }
+
+
+      if (selectedSort === "high") {
+
+        filteredProducts.sort(
+          (a, b) => b.price - a.price
+        );
+
+      }
+
+
+      renderFilteredProducts(filteredProducts);
+
+    }
+
+
+    // ================= RENDER PRODUCTS =================
+
+    function renderFilteredProducts(products) {
+
+      const productList =
+        document.getElementById("product-list");
+
+
+      productList.innerHTML = "";
+
+
+      if (products.length === 0) {
+
+        productList.innerHTML =
+          "<p class='no-products'>No products found.</p>";
+
+        return;
+
+      }
+
+
+      products.forEach(product => {
+
+        const productCard =
+          document.createElement("div");
+
+
+        productCard.className =
+          "product-card";
+
+
+        // Make complete card clickable
+
+        productCard.style.cursor = "pointer";
+
+
+        productCard.innerHTML = `
+
+          <div class="product-image-wrapper">
+
+            <img
+              src="${product.image}"
+              alt="${product.name}"
+            >
+
+            <button
+              class="wishlist-btn"
+              onclick="toggleWishlist('${product._id}', this)"
+              title="Add to Wishlist">
+              ♡
+            </button>
+
+          </div>
+
+
+          <h3>${product.name}</h3>
+
+          <p>₹${product.price}</p>
+
+          <p>${product.description}</p>
+
+          <p>
+            Category: ${product.category}
+          </p>
+
+          <p>
+            Stock: ${product.stock}
+          </p>
+
+
+          <button
+            class="cart-product-btn"
+            onclick="addToCart('${product._id}')">
+            Add to Cart
+          </button>
+
+        `;
+
+
+        // ================= CARD CLICK =================
+
+        productCard.addEventListener(
+          "click",
+          function () {
+
+            window.location.href =
+              `product-details.html?id=${product._id}`;
+
+          }
+        );
+
+
+        // ================= WISHLIST CLICK =================
+
+        const wishlistButton =
+          productCard.querySelector(
+            ".wishlist-btn"
+          );
+
+
+        if (wishlistButton) {
+
+          wishlistButton.addEventListener(
+            "click",
+            function (event) {
+
+              event.stopPropagation();
+
+              toggleWishlist(
+                product._id,
+                wishlistButton
+              );
+
+            }
+          );
+
+        }
+
+
+        // ================= CART CLICK =================
+
+        const cartButton =
+          productCard.querySelector(
+            ".cart-product-btn"
+          );
+
+
+        if (cartButton) {
+
+          cartButton.addEventListener(
+            "click",
+            function (event) {
+
+              event.stopPropagation();
+
+              addToCart(product._id);
+
+            }
+          );
+
+        }
+
+
+        productList.appendChild(
+          productCard
+        );
+
+      });
+
+
+      // Update wishlist hearts
+
+      updateWishlistButtons();
+
+    }
+
+
+    // ================= SEARCH =================
+
+    document
+      .getElementById("search-input")
+      .addEventListener(
+        "input",
+        function () {
+
+          searchText =
+            this.value.toLowerCase();
+
+          applyFilters();
+
+        }
+      );
+
+
+    // ================= SORT =================
+
+    document
+      .getElementById("sort-select")
+      .addEventListener(
+        "change",
+        function () {
+
+          selectedSort =
+            this.value;
+
+          applyFilters();
+
+        }
+      );
+
+
+    // ================= WAIT FOR APP.JS =================
+
+    const categoryTimer =
+      setInterval(() => {
+
+        setupCategoryFilter();
+
+
+        if (filterReady) {
+
+          clearInterval(
+            categoryTimer
+          );
+
+        }
+
+      }, 200);
+
+  </script>
+
+</body>
+</html>

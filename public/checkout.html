@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Checkout</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>ShopZone</h1>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="cart.html">Cart 🛒</a>
+    </nav>
+  </header>
+
+
+  <main>
+
+    <section class="products">
+
+      <h2>Checkout</h2>
+
+      <div id="checkout-items">
+        <!-- Order items will appear here -->
+      </div>
+
+      <h3 id="checkout-total"></h3>
+
+      <br>
+
+      <h3>Customer Details</h3>
+
+      <br>
+
+      <form id="checkout-form">
+
+        <label>
+          Full Name
+        </label>
+
+        <br>
+
+        <input
+          type="text"
+          id="name"
+          required
+        >
+
+        <br><br>
+
+
+        <label>
+          Email
+        </label>
+
+        <br>
+
+        <input
+          type="email"
+          id="email"
+          required
+        >
+
+        <br><br>
+
+
+        <label>
+          Phone Number
+        </label>
+
+        <br>
+
+        <input
+          type="tel"
+          id="phone"
+          required
+        >
+
+        <br><br>
+
+
+        <label>
+          Delivery Address
+        </label>
+
+        <br>
+
+        <textarea
+          id="address"
+          rows="4"
+          required
+        ></textarea>
+
+        <br><br>
+
+
+        <label>
+          Payment Method
+        </label>
+
+        <br>
+
+        <select id="payment">
+          <option value="COD">Cash on Delivery</option>
+          <option value="ONLINE">Online Payment</option>
+        </select>
+
+        <br><br>
+
+
+        <button type="submit">
+          Place Order
+        </button>
+
+      </form>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+    <p>© 2026 ShopZone. All rights reserved.</p>
+  </footer>
+
+
+  <script>
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+const token = localStorage.getItem("token");
+
+const checkoutItems = document.getElementById("checkout-items");
+const checkoutTotal = document.getElementById("checkout-total");
+
+
+function displayCheckout() {
+
+  checkoutItems.innerHTML = "";
+
+  if (cart.length === 0) {
+
+    checkoutItems.innerHTML = "<p>Your cart is empty.</p>";
+    checkoutTotal.innerText = "";
+
+    return;
+  }
+
+  let total = 0;
+
+  cart.forEach((product) => {
+
+    const itemTotal = product.price * product.quantity;
+
+    total += itemTotal;
+
+    const item = document.createElement("div");
+
+    item.innerHTML = `
+      <p>
+        <strong>${product.name}</strong>
+        × ${product.quantity}
+        — ₹${itemTotal}
+      </p>
+    `;
+
+    checkoutItems.appendChild(item);
+
+  });
+
+  checkoutTotal.innerText = "Total Amount: ₹" + total;
+
+}
+
+
+document
+  .getElementById("checkout-form")
+  .addEventListener("submit", async function(event) {
+
+    event.preventDefault();
+
+    if (cart.length === 0) {
+
+      alert("Your cart is empty!");
+
+      return;
+    }
+
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const phone = document.getElementById("phone").value;
+    const address = document.getElementById("address").value;
+    const payment = document.getElementById("payment").value;
+
+
+    let total = 0;
+
+    cart.forEach((product) => {
+
+      total += product.price * product.quantity;
+
+    });
+
+
+    // =========================
+    // COD ORDER
+    // =========================
+
+    if (payment === "COD") {
+
+      const orderData = {
+
+        customerName: name,
+        email: email,
+        phone: phone,
+        address: address,
+
+        items: cart.map((product) => ({
+
+          productId: product._id,
+          name: product.name,
+          price: product.price,
+          quantity: product.quantity
+
+        })),
+
+        totalAmount: total,
+
+        paymentMethod: "COD",
+
+        status: "Pending"
+
+      };
+
+
+      try {
+
+        const response = await fetch("/api/orders", {
+
+          method: "POST",
+
+        headers: {
+         "Content-Type": "application/json",
+         "Authorization": "Bearer " + token
+       },
+
+          body: JSON.stringify(orderData)
+
+        });
+
+
+        const result = await response.json();
+
+
+       if (!response.ok) {
+
+  alert(
+    "Order failed!\n\nReason: " +
+    (result.message || "Unknown error")
+  );
+
+  console.log("Order Error:", result);
+
+  return;
+}
+
+
+        alert(
+          "Order placed successfully! 🎉\nOrder ID: " +
+          result._id
+        );
+
+
+        localStorage.removeItem("cart");
+
+        window.location.href = "index.html";
+
+
+      } catch (error) {
+
+        console.log("Order Error:", error);
+
+        alert(
+          "Something went wrong while placing the order."
+        );
+
+      }
+
+      return;
+    }
+
+
+    // =========================
+    // ONLINE PAYMENT
+    // =========================
+
+    try {
+
+      // Create Razorpay Order
+
+      const paymentResponse = await fetch(
+        "/api/payment/create-order",
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type": "application/json"
+
+          },
+
+          body: JSON.stringify({
+
+            amount: total
+
+          })
+
+        }
+      );
+
+
+      const paymentData = await paymentResponse.json();
+
+
+      if (!paymentResponse.ok) {
+
+        alert("Unable to start payment.");
+
+        console.log(paymentData);
+
+        return;
+
+      }
+
+
+      // Razorpay Options
+
+      const options = {
+
+        key: paymentData.keyId,
+
+        amount: paymentData.order.amount,
+
+        currency: paymentData.order.currency,
+
+        name: "ShopZone",
+
+        description: "ShopZone Order",
+
+        order_id: paymentData.order.id,
+
+
+        // =========================
+        // PAYMENT SUCCESS HANDLER
+        // =========================
+
+        handler: async function(response) {
+
+          console.log("Payment successful:", response);
+
+
+          // Verify payment on server
+
+          const verifyResponse = await fetch(
+            "/api/payment/verify",
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type": "application/json"
+
+              },
+
+              body: JSON.stringify({
+
+                razorpay_order_id:
+                  response.razorpay_order_id,
+
+                razorpay_payment_id:
+                  response.razorpay_payment_id,
+
+                razorpay_signature:
+                  response.razorpay_signature
+
+              })
+
+            }
+          );
+
+
+          const verifyResult =
+            await verifyResponse.json();
+
+
+          // Payment verification failed
+
+          if (
+            !verifyResponse.ok ||
+            !verifyResult.success
+          ) {
+
+            alert(
+              "Payment verification failed. Order was not created."
+            );
+
+            console.log(verifyResult);
+
+            return;
+
+          }
+
+
+          // =========================
+          // CREATE SHOPZONE ORDER
+          // =========================
+          const currentToken = localStorage.getItem("token");
+          const orderData = {
+
+            customerName: name,
+
+            email: email,
+
+            phone: phone,
+
+            address: address,
+
+            items: cart.map((product) => ({
+
+              productId: product._id,
+
+              name: product.name,
+
+              price: product.price,
+
+              quantity: product.quantity
+
+            })),
+
+            totalAmount: total,
+
+            paymentMethod: "ONLINE",
+
+            status: "Confirmed"
+
+          };
+
+
+          const orderResponse =
+            await fetch("/api/orders", {
+
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + currentToken
+              },
+              body: JSON.stringify(orderData)
+
+            });
+
+
+          const orderResult =
+            await orderResponse.json();
+
+
+          if (!orderResponse.ok) {
+
+            alert(
+              "Payment verified, but order creation failed."
+            );
+
+            console.log(orderResult);
+
+            return;
+
+          }
+
+
+          alert(
+            "Payment successful! 🎉\nOrder ID: " +
+            orderResult._id
+          );
+
+
+          localStorage.removeItem("cart");
+
+          window.location.href = "index.html";
+
+        },
+
+
+        // Customer details
+
+        prefill: {
+
+          name: name,
+
+          email: email,
+
+          contact: phone
+
+        },
+
+
+        theme: {
+
+          color: "#3399cc"
+
+        }
+
+      };
+
+
+      // Open Razorpay
+
+      const razorpay =
+        new Razorpay(options);
+
+
+      razorpay.open();
+
+
+    } catch (error) {
+
+      console.log(
+        "Payment Error:",
+        error
+      );
+
+      alert(
+        "Something went wrong while starting payment."
+      );
+
+    }
+
+  });
+
+
+displayCheckout();
+
+</script>
+
+</body>
+
+</html>

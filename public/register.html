@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Register</title>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>ShopZone</h1>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="cart.html">Cart 🛒</a>
+      <a href="register.html">Register</a>
+    </nav>
+  </header>
+
+
+  <main>
+
+    <section class="products">
+
+      <h2>Create Account</h2>
+
+      <form id="register-form">
+
+        <input
+          type="text"
+          id="name"
+          placeholder="Full Name"
+          required
+        >
+
+        <br><br>
+
+        <input
+          type="email"
+          id="email"
+          placeholder="Email Address"
+          required
+        >
+
+        <br><br>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Password"
+          required
+        >
+
+        <br><br>
+
+        <button type="submit">
+          Register
+        </button>
+
+      </form>
+
+      <br>
+
+      <p>
+        Already have an account?
+        <a href="login.html">Login</a>
+      </p>
+
+    </section>
+
+  </main>
+
+
+  <footer>
+    <p>© 2026 ShopZone. All rights reserved.</p>
+  </footer>
+
+
+  <script>
+
+    document
+      .getElementById("register-form")
+      .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const name =
+          document.getElementById("name").value;
+
+        const email =
+          document.getElementById("email").value;
+
+        const password =
+          document.getElementById("password").value;
+
+
+        try {
+
+          const response = await fetch(
+            "/api/users/register",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify({
+                name: name,
+                email: email,
+                password: password
+              })
+            }
+          );
+
+
+          const result = await response.json();
+
+
+          if (response.ok) {
+
+            alert("Registration successful! 🎉");
+
+            document
+              .getElementById("register-form")
+              .reset();
+
+          } else {
+
+            alert(result.message);
+
+          }
+
+
+        } catch (error) {
+
+          console.log("Registration Error:", error);
+
+          alert("Something went wrong!");
+
+        }
+
+      });
+
+  </script>
+
+</body>
+
+</html>

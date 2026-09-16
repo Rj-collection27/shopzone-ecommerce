@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Manage Users</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="admin-users-page">
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="admin-header">
+
+    <div class="admin-logo">
+
+      <span class="admin-logo-icon">S</span>
+
+      <div>
+        <h1>ShopZone</h1>
+        <span>Admin Panel</span>
+      </div>
+
+    </div>
+
+
+    <nav class="admin-nav">
+
+      <a href="index.html">
+        Dashboard
+      </a>
+
+      <a href="products.html">
+        Products
+      </a>
+
+      <a href="orders.html">
+        Orders
+      </a>
+
+      <a href="users.html" class="active">
+        Users
+      </a>
+
+      <a href="categories.html">
+        Categories
+      </a>
+
+      <a href="../index.html" class="store-link">
+        Store ↗
+      </a>
+
+      <button
+        type="button"
+        class="admin-logout-btn"
+        onclick="logoutAdmin()"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- ================= MAIN ================= -->
+
+  <main class="admin-users-main">
+
+    <!-- ================= PAGE HEADING ================= -->
+
+    <section class="admin-page-heading">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          USER MANAGEMENT
+        </span>
+
+        <h2>
+          Manage Users
+        </h2>
+
+        <p>
+          View and manage registered ShopZone users.
+        </p>
+
+      </div>
+
+
+      <div class="users-count-box">
+
+        <span>
+          Total Users
+        </span>
+
+        <strong id="total-users">
+          0
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= USER SUMMARY ================= -->
+
+    <section class="user-summary-grid">
+
+      <div class="user-summary-card">
+
+        <span class="user-summary-icon">
+          👥
+        </span>
+
+        <div>
+
+          <span>
+            All Users
+          </span>
+
+          <strong id="all-users-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="user-summary-card">
+
+        <span class="user-summary-icon admin-summary-icon">
+          🛡️
+        </span>
+
+        <div>
+
+          <span>
+            Admins
+          </span>
+
+          <strong id="admin-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="user-summary-card">
+
+        <span class="user-summary-icon customer-summary-icon">
+          👤
+        </span>
+
+        <div>
+
+          <span>
+            Customers
+          </span>
+
+          <strong id="customer-count">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= USERS HEADER ================= -->
+
+    <section class="users-toolbar">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          REGISTERED ACCOUNTS
+        </span>
+
+        <h3>
+          All Users
+        </h3>
+
+      </div>
+
+
+      <div class="users-search">
+
+        <span>
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          id="user-search"
+          placeholder="Search by name, email or role..."
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= USERS ================= -->
+
+    <section>
+
+      <div id="users-list">
+
+        <div class="users-loading">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading users...
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="admin-footer">
+
+    <p>
+      © 2026 ShopZone Admin Panel
+    </p>
+
+    <span>
+      Secure User Management
+    </span>
+
+  </footer>
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script>
+
+    /* =====================================================
+       ADMIN PROTECTION
+    ===================================================== */
+
+    const admin =
+      JSON.parse(
+        localStorage.getItem("admin")
+      );
+
+
+    const adminToken =
+      localStorage.getItem(
+        "adminToken"
+      );
+
+
+    if (
+      !admin ||
+      admin.role !== "admin" ||
+      !adminToken
+    ) {
+
+      alert(
+        "Access denied! Admin only."
+      );
+
+      window.location.href =
+        "login.html";
+
+    }
+
+
+    let allUsers = [];
+
+
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
+
+    function logoutAdmin() {
+
+      const confirmLogout =
+        confirm(
+          "Are you sure you want to logout?"
+        );
+
+
+      if (!confirmLogout) {
+        return;
+      }
+
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+
+      window.location.href =
+        "/admin/login.html";
+
+    }
+
+
+    /* =====================================================
+       LOAD USERS
+    ===================================================== */
+
+    async function loadUsers() {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/users",
+            {
+              headers: {
+
+                "Authorization":
+                  "Bearer " +
+                  localStorage.getItem(
+                    "adminToken"
+                  )
+
+              }
+            }
+          );
+
+
+        if (!response.ok) {
+
+          if (
+            response.status === 401 ||
+            response.status === 403
+          ) {
+
+            localStorage.removeItem(
+              "adminToken"
+            );
+
+            localStorage.removeItem(
+              "admin"
+            );
+
+            alert(
+              "Admin session expired. Please login again."
+            );
+
+            window.location.href =
+              "/admin/login.html";
+
+            return;
+
+          }
+
+
+          throw new Error(
+            "Failed to load users"
+          );
+
+        }
+
+
+        const users =
+          await response.json();
+
+
+        allUsers =
+          Array.isArray(users)
+            ? users
+            : [];
+
+
+        updateUserSummary(
+          allUsers
+        );
+
+
+        displayUsers(
+          allUsers
+        );
+
+
+      } catch (error) {
+
+        console.log(
+          "Error loading users:",
+          error
+        );
+
+
+        document
+          .getElementById(
+            "users-list"
+          )
+          .innerHTML = `
+
+            <div class="users-error">
+
+              <div>
+                ⚠️
+              </div>
+
+              <h3>
+                Unable to load users
+              </h3>
+
+              <p>
+                Please make sure the server is running.
+              </p>
+
+              <button
+                onclick="loadUsers()"
+              >
+                Try Again
+              </button>
+
+            </div>
+
+          `;
+
+      }
+
+    }
+
+
+    /* =====================================================
+       USER SUMMARY
+    ===================================================== */
+
+    function updateUserSummary(
+      users
+    ) {
+
+      const adminUsers =
+        users.filter(
+          user =>
+            user.role === "admin"
+        ).length;
+
+
+      const customers =
+        users.filter(
+          user =>
+            user.role !== "admin"
+        ).length;
+
+
+      document
+        .getElementById(
+          "total-users"
+        )
+        .textContent =
+        users.length;
+
+
+      document
+        .getElementById(
+          "all-users-count"
+        )
+        .textContent =
+        users.length;
+
+
+      document
+        .getElementById(
+          "admin-count"
+        )
+        .textContent =
+        adminUsers;
+
+
+      document
+        .getElementById(
+          "customer-count"
+        )
+        .textContent =
+        customers;
+
+    }
+
+
+    /* =====================================================
+       DISPLAY USERS
+    ===================================================== */
+
+    function displayUsers(
+      users
+    ) {
+
+      const usersList =
+        document.getElementById(
+          "users-list"
+        );
+
+
+      usersList.innerHTML = "";
+
+
+      if (
+        users.length === 0
+      ) {
+
+        usersList.innerHTML = `
+
+          <div class="users-empty">
+
+            <div>
+              👥
+            </div>
+
+            <h3>
+              No Users Found
+            </h3>
+
+            <p>
+              No users match your search.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      users.forEach(
+        (user) => {
+
+          const userCard =
+            document.createElement(
+              "div"
+            );
+
+
+          userCard.className =
+            "admin-user-card";
+
+
+          const isAdmin =
+            user.role === "admin";
+
+
+          const roleClass =
+            isAdmin
+              ? "admin-role"
+              : "user-role";
+
+
+          const roleIcon =
+            isAdmin
+              ? "🛡️"
+              : "👤";
+
+
+          const initial =
+            user.name
+              ? user.name
+                  .charAt(0)
+                  .toUpperCase()
+              : "U";
+
+
+          userCard.innerHTML = `
+
+            <!-- USER AVATAR -->
+
+            <div class="user-avatar">
+              ${initial}
+            </div>
+
+
+            <!-- USER INFORMATION -->
+
+            <div class="user-main-info">
+
+              <div class="user-name-row">
+
+                <h3>
+                  ${user.name || "Unknown User"}
+                </h3>
+
+                <span
+                  class="user-role-badge ${roleClass}"
+                >
+                  ${roleIcon}
+                  ${user.role || "user"}
+                </span>
+
+              </div>
+
+
+              <div class="user-contact">
+
+                <span>
+                  📧 ${user.email || "No email"}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <!-- USER ID -->
+
+            <div class="user-id-box">
+
+              <span>
+                USER ID
+              </span>
+
+              <strong>
+                ${user._id}
+              </strong>
+
+            </div>
+
+
+            <!-- ACTION -->
+
+            <div class="user-actions">
+
+              ${
+                isAdmin
+
+                  ? `
+
+                    <span class="protected-user">
+                      🔒 Protected
+                    </span>
+
+                  `
+
+                  : `
+
+                    <button
+                      class="delete-user-btn"
+                      onclick="deleteUser('${user._id}')"
+                    >
+                      🗑️ Delete
+                    </button>
+
+                  `
+              }
+
+            </div>
+
+          `;
+
+
+          usersList.appendChild(
+            userCard
+          );
+
+        }
+      );
+
+    }
+
+
+    /* =====================================================
+       DELETE USER
+    ===================================================== */
+
+    async function deleteUser(
+      id
+    ) {
+
+      const user =
+        allUsers.find(
+          item =>
+            item._id === id
+        );
+
+
+      if (
+        user &&
+        user.role === "admin"
+      ) {
+
+        alert(
+          "Admin account cannot be deleted from this page."
+        );
+
+        return;
+
+      }
+
+
+      const confirmDelete =
+        confirm(
+          "Are you sure you want to delete this user?"
+        );
+
+
+      if (!confirmDelete) {
+        return;
+      }
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/users/" +
+              id,
+            {
+
+              method: "DELETE",
+
+              headers: {
+
+                "Authorization":
+                  "Bearer " +
+                  localStorage.getItem(
+                    "adminToken"
+                  )
+
+              }
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (response.ok) {
+
+          alert(
+            "User deleted successfully!"
+          );
+
+
+          loadUsers();
+
+        } else {
+
+          console.log(
+            "DELETE USER ERROR:",
+            data
+          );
+
+
+          if (
+            response.status === 401 ||
+            response.status === 403
+          ) {
+
+            localStorage.removeItem(
+              "adminToken"
+            );
+
+            localStorage.removeItem(
+              "admin"
+            );
+
+            alert(
+              "Admin session expired. Please login again."
+            );
+
+            window.location.href =
+              "/admin/login.html";
+
+            return;
+
+          }
+
+
+          alert(
+            "User delete failed!\n\n" +
+            (
+              data.message ||
+              "Unknown error"
+            )
+          );
+
+        }
+
+      } catch (error) {
+
+        console.log(
+          "Error deleting user:",
+          error
+        );
+
+
+        alert(
+          "Something went wrong!"
+        );
+
+      }
+
+    }
+
+
+    /* =====================================================
+       SEARCH
+    ===================================================== */
+
+    document
+      .getElementById(
+        "user-search"
+      )
+      .addEventListener(
+        "input",
+        function() {
+
+          const search =
+            this.value
+              .toLowerCase()
+              .trim();
+
+
+          const filteredUsers =
+            allUsers.filter(
+              user => {
+
+                const name =
+                  String(
+                    user.name ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                const email =
+                  String(
+                    user.email ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                const role =
+                  String(
+                    user.role ||
+                    ""
+                  )
+                    .toLowerCase();
+
+
+                return (
+                  name.includes(
+                    search
+                  ) ||
+
+                  email.includes(
+                    search
+                  ) ||
+
+                  role.includes(
+                    search
+                  )
+                );
+
+              }
+            );
+
+
+          displayUsers(
+            filteredUsers
+          );
+
+        }
+      );
+
+
+    /* =====================================================
+       INITIAL LOAD
+    ===================================================== */
+
+    loadUsers();
+
+  </script>
+
+</body>
+
+</html>

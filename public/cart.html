@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ShopZone - Cart</title>
+
+  <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+
+<body>
+
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="main-header">
+
+    <div class="logo">
+
+      <h1>ShopZone</h1>
+
+    </div>
+
+
+    <nav>
+
+      <a href="index.html">Home</a>
+
+      <a href="products.html">Products</a>
+
+      <a href="cart.html">Cart 🛒</a>
+
+      <a href="wishlist.html">Wishlist ❤️</a>
+
+      <a href="login.html">Login</a>
+
+    </nav>
+
+  </header>
+
+
+
+  <!-- ================= CART ================= -->
+
+  <main>
+
+    <section class="products">
+
+
+      <div class="section-heading">
+
+        <div>
+
+          <span>SHOPZONE SHOPPING</span>
+
+          <h2>Your Cart 🛒</h2>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- CART ITEMS -->
+
+      <div id="cart-items">
+
+        <!-- Cart products will appear here -->
+
+      </div>
+
+
+
+      <!-- CART SUMMARY -->
+
+      <div
+        id="cart-summary"
+        class="cart-summary"
+      >
+
+        <div class="cart-summary-row">
+
+          <span>Subtotal</span>
+
+          <strong id="cart-subtotal">
+            ₹0
+          </strong>
+
+        </div>
+
+
+        <div class="cart-summary-row">
+
+          <span>Delivery</span>
+
+          <strong id="cart-delivery">
+            Free
+          </strong>
+
+        </div>
+
+
+        <div class="cart-summary-total">
+
+          <span>Total</span>
+
+          <strong id="cart-total">
+            ₹0
+          </strong>
+
+        </div>
+
+
+        <button
+          class="checkout-btn"
+          onclick="checkout()"
+        >
+          Proceed to Checkout →
+        </button>
+
+      </div>
+
+
+    </section>
+
+  </main>
+
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer>
+
+    <div class="footer-content">
+
+
+      <div class="footer-brand">
+
+        <h2>ShopZone</h2>
+
+        <p>
+          Your trusted online shopping destination
+          for quality products at great prices.
+        </p>
+
+      </div>
+
+
+
+      <div class="footer-links">
+
+        <h3>Quick Links</h3>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="products.html">
+          Products
+        </a>
+
+        <a href="cart.html">
+          Cart
+        </a>
+
+        <a href="wishlist.html">
+          Wishlist
+        </a>
+
+        <a href="login.html">
+          Login
+        </a>
+
+      </div>
+
+
+
+      <div class="footer-links">
+
+        <h3>Customer</h3>
+
+        <a href="track-order.html">
+          Track Order
+        </a>
+
+        <a href="checkout.html">
+          Checkout
+        </a>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>
+        © 2026 ShopZone. All rights reserved.
+      </p>
+
+    </div>
+
+  </footer>
+
+
+
+  <!-- ================= CART SCRIPT ================= -->
+
+  <script>
+
+
+    let cart =
+      JSON.parse(
+        localStorage.getItem("cart")
+      ) || [];
+
+
+
+    const cartItems =
+      document.getElementById(
+        "cart-items"
+      );
+
+
+    const cartSubtotal =
+      document.getElementById(
+        "cart-subtotal"
+      );
+
+
+    const cartTotal =
+      document.getElementById(
+        "cart-total"
+      );
+
+
+    const cartSummary =
+      document.getElementById(
+        "cart-summary"
+      );
+
+
+
+    // ================= DISPLAY CART =================
+
+    function displayCart() {
+
+
+      cartItems.innerHTML = "";
+
+
+      // Empty Cart
+
+      if (cart.length === 0) {
+
+
+        cartItems.innerHTML = `
+
+          <div class="no-products">
+
+            <h3>
+              Your Cart is Empty 🛒
+            </h3>
+
+            <p>
+              Add some products to your cart
+              and they will appear here.
+            </p>
+
+            <br>
+
+            <a href="products.html">
+
+              <button>
+                Browse Products
+              </button>
+
+            </a>
+
+          </div>
+
+        `;
+
+
+        cartSubtotal.innerText =
+          "₹0";
+
+
+        cartTotal.innerText =
+          "₹0";
+
+
+        cartSummary.style.display =
+          "none";
+
+
+        return;
+
+      }
+
+
+
+      cartSummary.style.display =
+        "block";
+
+
+
+      let total = 0;
+
+
+
+      // ================= CART PRODUCTS =================
+
+      cart.forEach(
+        (product, index) => {
+
+
+          const itemTotal =
+            product.price *
+            product.quantity;
+
+
+          total += itemTotal;
+
+
+
+          const cartCard =
+            document.createElement(
+              "div"
+            );
+
+
+          cartCard.className =
+            "cart-product-card";
+
+
+
+          cartCard.innerHTML = `
+
+
+            <!-- PRODUCT IMAGE -->
+
+            <div class="cart-product-image">
+
+              <img
+                src="${product.image}"
+                alt="${product.name}"
+              >
+
+            </div>
+
+
+
+            <!-- PRODUCT INFORMATION -->
+
+            <div class="cart-product-info">
+
+
+              <h3>
+                ${product.name}
+              </h3>
+
+
+              <p class="cart-product-price">
+                ₹${product.price}
+              </p>
+
+
+              <p class="cart-item-total">
+                Item Total:
+                <strong>
+                  ₹${itemTotal}
+                </strong>
+              </p>
+
+
+
+              <!-- QUANTITY -->
+
+              <div class="quantity-control">
+
+
+                <button
+                  class="quantity-btn"
+                  onclick="decreaseQuantity(${index})"
+                >
+                  −
+                </button>
+
+
+                <span class="quantity-value">
+                  ${product.quantity}
+                </span>
+
+
+                <button
+                  class="quantity-btn"
+                  onclick="increaseQuantity(${index})"
+                >
+                  +
+                </button>
+
+
+              </div>
+
+
+
+              <!-- REMOVE -->
+
+              <button
+                class="remove-cart-btn"
+                onclick="removeFromCart(${index})"
+              >
+                🗑 Remove
+              </button>
+
+
+            </div>
+
+
+          `;
+
+
+
+          cartItems.appendChild(
+            cartCard
+          );
+
+
+        }
+      );
+
+
+
+      // ================= TOTAL =================
+
+      cartSubtotal.innerText =
+        "₹" + total;
+
+
+      cartTotal.innerText =
+        "₹" + total;
+
+
+    }
+
+
+
+    // ================= INCREASE =================
+
+    function increaseQuantity(index) {
+
+
+      cart[index].quantity += 1;
+
+
+      saveCart();
+
+
+      displayCart();
+
+    }
+
+
+
+    // ================= DECREASE =================
+
+    function decreaseQuantity(index) {
+
+
+      if (
+        cart[index].quantity > 1
+      ) {
+
+
+        cart[index].quantity -= 1;
+
+
+      } else {
+
+
+        const confirmRemove =
+          confirm(
+            "Remove this product from cart?"
+          );
+
+
+        if (confirmRemove) {
+
+          cart.splice(index, 1);
+
+        } else {
+
+          return;
+
+        }
+
+      }
+
+
+      saveCart();
+
+
+      displayCart();
+
+    }
+
+
+
+    // ================= REMOVE =================
+
+    function removeFromCart(index) {
+
+
+      cart.splice(index, 1);
+
+
+      saveCart();
+
+
+      displayCart();
+
+    }
+
+
+
+    // ================= SAVE CART =================
+
+    function saveCart() {
+
+
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+      );
+
+    }
+
+
+
+    // ================= CHECKOUT =================
+
+    function checkout() {
+
+
+      if (cart.length === 0) {
+
+        alert(
+          "Your cart is empty!"
+        );
+
+        return;
+
+      }
+
+
+      window.location.href =
+        "checkout.html";
+
+    }
+
+
+
+    // ================= START =================
+
+    displayCart();
+
+
+  </script>
+
+
+</body>
+
+</html>

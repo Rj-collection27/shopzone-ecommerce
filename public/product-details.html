@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ShopZone - Product Details</title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
+
+</head>
+
+
+<body class="shopzone-product-page">
+
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="main-header">
+
+    <div class="logo">
+
+      <h1>
+        ShopZone
+      </h1>
+
+    </div>
+
+
+    <nav>
+
+      <a href="index.html">
+        Home
+      </a>
+
+      <a href="products.html">
+        Products
+      </a>
+
+      <a href="cart.html">
+        Cart 🛒
+      </a>
+
+      <a href="wishlist.html">
+        Wishlist ❤️
+      </a>
+
+      <a href="login.html">
+        Login
+      </a>
+
+    </nav>
+
+  </header>
+
+
+  <!-- ================= BREADCRUMB ================= -->
+
+  <div class="product-breadcrumb">
+
+    <a href="index.html">
+      Home
+    </a>
+
+    <span>
+      /
+    </span>
+
+    <a href="products.html">
+      Products
+    </a>
+
+    <span>
+      /
+    </span>
+
+    <strong>
+      Product Details
+    </strong>
+
+  </div>
+
+
+  <!-- ================= PRODUCT DETAILS ================= -->
+
+  <main class="product-details-main">
+
+    <section>
+
+      <div id="product-details">
+
+        <div class="product-details-loading">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading product...
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer>
+
+    <div class="footer-content">
+
+
+      <div class="footer-brand">
+
+        <h2>
+          ShopZone
+        </h2>
+
+        <p>
+          Your trusted online shopping destination
+          for quality products at great prices.
+        </p>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>
+          Quick Links
+        </h3>
+
+        <a href="index.html">
+          Home
+        </a>
+
+        <a href="products.html">
+          Products
+        </a>
+
+        <a href="cart.html">
+          Cart
+        </a>
+
+        <a href="wishlist.html">
+          Wishlist
+        </a>
+
+        <a href="login.html">
+          Login
+        </a>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>
+          Customer
+        </h3>
+
+        <a href="track-order.html">
+          Track Order
+        </a>
+
+        <a href="checkout.html">
+          Checkout
+        </a>
+
+      </div>
+
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>
+        © 2026 ShopZone. All rights reserved.
+      </p>
+
+    </div>
+
+  </footer>
+
+
+  <!-- ================= SCRIPT ================= -->
+
+  <script>
+
+
+    /* ================= LOCAL DATA ================= */
+
+    let cart =
+      JSON.parse(
+        localStorage.getItem("cart")
+      ) || [];
+
+
+    let wishlist =
+      JSON.parse(
+        localStorage.getItem("wishlist")
+      ) || [];
+
+
+    let currentProduct = null;
+
+    let selectedQuantity = 1;
+
+
+    /* ================= PRODUCT ID ================= */
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const productId =
+      params.get("id");
+
+
+    /* ================= LOAD PRODUCT ================= */
+
+    async function loadProduct() {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/products"
+          );
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Unable to load products"
+          );
+
+        }
+
+
+        const products =
+          await response.json();
+
+
+        const product =
+          products.find(
+            item =>
+              item._id === productId
+          );
+
+
+        if (!product) {
+
+          document
+            .getElementById(
+              "product-details"
+            )
+            .innerHTML = `
+
+              <div class="product-not-found">
+
+                <div class="not-found-icon">
+                  📦
+                </div>
+
+                <h2>
+                  Product Not Found
+                </h2>
+
+                <p>
+                  The product you are looking for
+                  does not exist or may have been removed.
+                </p>
+
+                <a
+                  href="products.html"
+                  class="product-back-link"
+                >
+                  ← Back to Products
+                </a>
+
+              </div>
+
+            `;
+
+          return;
+
+        }
+
+
+        currentProduct =
+          product;
+
+
+        renderProduct(
+          product
+        );
+
+
+      } catch (error) {
+
+        console.log(
+          "Error loading product:",
+          error
+        );
+
+
+        document
+          .getElementById(
+            "product-details"
+          )
+          .innerHTML = `
+
+            <div class="product-not-found">
+
+              <div class="not-found-icon">
+                ⚠️
+              </div>
+
+              <h2>
+                Something Went Wrong
+              </h2>
+
+              <p>
+                Unable to load this product right now.
+              </p>
+
+              <button
+                class="product-retry-btn"
+                onclick="loadProduct()"
+              >
+                Try Again
+              </button>
+
+            </div>
+
+          `;
+
+      }
+
+    }
+
+
+    /* ================= RENDER PRODUCT ================= */
+
+    function renderProduct(
+      product
+    ) {
+
+      const details =
+        document.getElementById(
+          "product-details"
+        );
+
+
+      const isWishlisted =
+        wishlist.includes(
+          product._id
+        );
+
+
+      const stock =
+        Number(
+          product.stock || 0
+        );
+
+
+      const inStock =
+        stock > 0;
+
+
+      let stockText =
+        "Out of Stock";
+
+
+      if (stock > 10) {
+
+        stockText =
+          "In Stock";
+
+      } else if (stock > 0) {
+
+        stockText =
+          `Only ${stock} left`;
+
+      }
+
+
+      details.innerHTML = `
+
+        <div class="premium-product-card">
+
+
+          <!-- ================= IMAGE ================= -->
+
+          <div class="premium-product-gallery">
+
+            <div class="product-image-badge">
+              PREMIUM
+            </div>
+
+            <img
+              src="${product.image}"
+              alt="${product.name}"
+              onerror="this.src='https://via.placeholder.com/700x700?text=ShopZone'"
+            >
+
+          </div>
+
+
+          <!-- ================= INFO ================= -->
+
+          <div class="premium-product-info">
+
+
+            <span class="premium-product-category">
+              ${product.category || "General"}
+            </span>
+
+
+            <h1>
+              ${product.name}
+            </h1>
+
+
+            <div class="product-rating-row">
+
+              <span class="fake-rating">
+                ★★★★★
+              </span>
+
+              <span>
+                Premium Product
+              </span>
+
+            </div>
+
+
+            <div class="premium-product-price">
+
+              ₹${Number(product.price).toLocaleString("en-IN")}
+
+            </div>
+
+
+            <p class="premium-product-description">
+
+              ${
+                product.description ||
+                "High-quality product available at ShopZone."
+              }
+
+            </p>
+
+
+            <!-- ================= STOCK ================= -->
+
+            <div class="product-stock-box">
+
+              <span class="stock-dot ${inStock ? "stock-available" : "stock-unavailable"}"></span>
+
+              <strong>
+                ${stockText}
+              </strong>
+
+              ${
+                inStock
+                  ? "<span>Ready to ship</span>"
+                  : "<span>Currently unavailable</span>"
+              }
+
+            </div>
+
+
+            <!-- ================= QUANTITY ================= -->
+
+            ${
+              inStock
+                ? `
+
+                  <div class="quantity-section">
+
+                    <span>
+                      Quantity
+                    </span>
+
+
+                    <div class="quantity-selector">
+
+                      <button
+                        onclick="changeQuantity(-1)"
+                      >
+                        −
+                      </button>
+
+
+                      <strong id="product-quantity">
+                        1
+                      </strong>
+
+
+                      <button
+                        onclick="changeQuantity(1)"
+                      >
+                        +
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                `
+                : ""
+            }
+
+
+            <!-- ================= ACTIONS ================= -->
+
+            <div class="premium-product-actions">
+
+
+              ${
+                inStock
+
+                  ? `
+
+                    <button
+                      class="premium-add-cart-btn"
+                      onclick="addToCart()"
+                    >
+                      🛒 Add to Cart
+                    </button>
+
+
+                    <button
+                      class="premium-buy-btn"
+                      onclick="buyNow()"
+                    >
+                      Buy Now
+                    </button>
+
+                  `
+
+                  : `
+
+                    <button
+                      class="premium-disabled-btn"
+                      disabled
+                    >
+                      Out of Stock
+                    </button>
+
+                  `
+
+              }
+
+
+            </div>
+
+
+            <!-- ================= WISHLIST ================= -->
+
+            <button
+              id="details-wishlist"
+              class="premium-wishlist-btn ${isWishlisted ? "wishlisted" : ""}"
+              onclick="toggleWishlist('${product._id}')"
+            >
+
+              ${
+                isWishlisted
+                  ? "♥  Remove from Wishlist"
+                  : "♡  Add to Wishlist"
+              }
+
+            </button>
+
+
+            <!-- ================= TRUST ================= -->
+
+            <div class="product-trust-grid">
+
+
+              <div class="product-trust-item">
+
+                <span>
+                  🚚
+                </span>
+
+                <div>
+
+                  <strong>
+                    Fast Delivery
+                  </strong>
+
+                  <small>
+                    Quick & reliable shipping
+                  </small>
+
+                </div>
+
+              </div>
+
+
+              <div class="product-trust-item">
+
+                <span>
+                  🔒
+                </span>
+
+                <div>
+
+                  <strong>
+                    Secure Payment
+                  </strong>
+
+                  <small>
+                    100% secure checkout
+                  </small>
+
+                </div>
+
+              </div>
+
+
+              <div class="product-trust-item">
+
+                <span>
+                  ✓
+                </span>
+
+                <div>
+
+                  <strong>
+                    Quality Products
+                  </strong>
+
+                  <small>
+                    Carefully selected products
+                  </small>
+
+                </div>
+
+              </div>
+
+
+            </div>
+
+
+            <!-- ================= BACK ================= -->
+
+            <a
+              href="products.html"
+              class="premium-back-products"
+            >
+              ← Continue Shopping
+            </a>
+
+
+          </div>
+
+
+        </div>
+
+      `;
+
+    }
+
+
+    /* ================= QUANTITY ================= */
+
+    function changeQuantity(
+      change
+    ) {
+
+      if (!currentProduct) {
+        return;
+      }
+
+
+      const stock =
+        Number(
+          currentProduct.stock || 0
+        );
+
+
+      selectedQuantity +=
+        change;
+
+
+      if (
+        selectedQuantity < 1
+      ) {
+
+        selectedQuantity = 1;
+
+      }
+
+
+      if (
+        selectedQuantity > stock
+      ) {
+
+        selectedQuantity = stock;
+
+      }
+
+
+      const quantityElement =
+        document.getElementById(
+          "product-quantity"
+        );
+
+
+      if (quantityElement) {
+
+        quantityElement.innerText =
+          selectedQuantity;
+
+      }
+
+    }
+
+
+    /* ================= ADD TO CART ================= */
+
+    function addToCart() {
+
+      if (!currentProduct) {
+        return;
+      }
+
+
+      const product =
+        currentProduct;
+
+
+      const existingProduct =
+        cart.find(
+          item =>
+            item._id === product._id
+        );
+
+
+      if (existingProduct) {
+
+        existingProduct.quantity +=
+          selectedQuantity;
+
+
+        if (
+          existingProduct.quantity >
+          Number(product.stock)
+        ) {
+
+          existingProduct.quantity =
+            Number(product.stock);
+
+        }
+
+      } else {
+
+        cart.push({
+
+          _id:
+            product._id,
+
+          name:
+            product.name,
+
+          price:
+            product.price,
+
+          image:
+            product.image,
+
+          quantity:
+            selectedQuantity
+
+        });
+
+      }
+
+
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+      );
+
+
+      alert(
+        product.name +
+        " added to cart!"
+      );
+
+    }
+
+
+    /* ================= BUY NOW ================= */
+
+    function buyNow() {
+
+      if (!currentProduct) {
+        return;
+      }
+
+
+      addToCart();
+
+
+      window.location.href =
+        "cart.html";
+
+    }
+
+
+    /* ================= WISHLIST ================= */
+
+    function toggleWishlist(
+      id
+    ) {
+
+      const index =
+        wishlist.indexOf(id);
+
+
+      const button =
+        document.getElementById(
+          "details-wishlist"
+        );
+
+
+      if (index === -1) {
+
+        wishlist.push(id);
+
+
+        button.innerText =
+          "♥  Remove from Wishlist";
+
+
+        button.classList.add(
+          "wishlisted"
+        );
+
+
+      } else {
+
+        wishlist.splice(
+          index,
+          1
+        );
+
+
+        button.innerText =
+          "♡  Add to Wishlist";
+
+
+        button.classList.remove(
+          "wishlisted"
+        );
+
+      }
+
+
+      localStorage.setItem(
+        "wishlist",
+        JSON.stringify(wishlist)
+      );
+
+    }
+
+
+    /* ================= START ================= */
+
+    loadProduct();
+
+  </script>
+
+
+</body>
+
+</html>

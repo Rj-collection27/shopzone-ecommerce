@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Wishlist</title>
+
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="main-header">
+
+    <div class="logo">
+      <h1>ShopZone</h1>
+    </div>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="products.html">Products</a>
+      <a href="cart.html">Cart 🛒</a>
+      <a href="wishlist.html">Wishlist ❤️ <span id="wishlist-count">0</span></a>      <a href="login.html">Login</a>
+    </nav>
+
+  </header>
+
+
+  <!-- ================= WISHLIST ================= -->
+
+  <main>
+
+    <section class="products">
+
+      <div class="section-heading">
+
+        <div>
+          <span>SHOPZONE COLLECTION</span>
+          <h2>My Wishlist ❤️</h2>
+        </div>
+
+      </div>
+
+
+      <div id="wishlist-list">
+        <!-- Wishlist products will appear here -->
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer>
+
+    <div class="footer-content">
+
+      <div class="footer-brand">
+
+        <h2>ShopZone</h2>
+
+        <p>
+          Your trusted online shopping destination
+          for quality products at great prices.
+        </p>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>Quick Links</h3>
+
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="cart.html">Cart</a>
+        <a href="wishlist.html">Wishlist</a>
+        <a href="login.html">Login</a>
+
+      </div>
+
+
+      <div class="footer-links">
+
+        <h3>Customer</h3>
+
+        <a href="track-order.html">Track Order</a>
+        <a href="checkout.html">Checkout</a>
+
+      </div>
+
+    </div>
+
+
+    <div class="footer-bottom">
+
+      <p>© 2026 ShopZone. All rights reserved.</p>
+
+    </div>
+
+  </footer>
+
+
+  <!-- ================= WISHLIST SCRIPT ================= -->
+
+  <script>
+
+    let wishlist =
+      JSON.parse(localStorage.getItem("wishlist")) || [];
+
+
+    let products = [];
+    function updateWishlistCount() {
+
+  const countElement =
+    document.getElementById("wishlist-count");
+
+  if (countElement) {
+
+    countElement.innerText =
+      wishlist.length;
+
+  }
+
+}
+
+    // ================= LOAD PRODUCTS =================
+
+    async function loadWishlistProducts() {
+
+      try {
+
+        const response =
+          await fetch("/api/products");
+
+        products =
+          await response.json();
+
+
+        renderWishlist();
+        updateWishlistCount();
+      } catch (error) {
+
+        console.log(
+          "Error loading wishlist products:",
+          error
+        );
+
+      }
+
+    }
+
+
+    // ================= RENDER WISHLIST =================
+
+    function renderWishlist() {
+
+      const wishlistList =
+        document.getElementById("wishlist-list");
+
+
+      wishlistList.innerHTML = "";
+
+
+      const wishlistProducts =
+        products.filter(product =>
+          wishlist.includes(product._id)
+        );
+
+
+      // No wishlist products
+
+      if (wishlistProducts.length === 0) {
+
+        wishlistList.innerHTML = `
+
+          <div class="no-products">
+
+            <h3>Your Wishlist is Empty ❤️</h3>
+
+            <p>
+              Add your favourite products to your wishlist.
+            </p>
+
+            <br>
+
+            <a href="products.html">
+
+              <button>
+                Browse Products
+              </button>
+
+            </a>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      // Show wishlist products
+
+      wishlistProducts.forEach(product => {
+
+        const productCard =
+          document.createElement("div");
+
+
+        productCard.className =
+          "product-card";
+
+
+        productCard.innerHTML = `
+
+          <div class="product-image-wrapper">
+
+            <img
+              src="${product.image}"
+              alt="${product.name}"
+            >
+
+            <button
+              class="wishlist-btn wishlisted"
+              onclick="removeFromWishlist('${product._id}')"
+              title="Remove from Wishlist">
+              ♥
+            </button>
+
+          </div>
+
+
+          <h3>${product.name}</h3>
+
+          <p>₹${product.price}</p>
+
+          <p>${product.description}</p>
+
+          <p>
+            Category: ${product.category}
+          </p>
+
+          <p>
+            Stock: ${product.stock}
+          </p>
+
+
+          <button
+            onclick="addToCart('${product._id}')">
+            Add to Cart
+          </button>
+
+        `;
+
+
+        wishlistList.appendChild(productCard);
+
+      });
+
+    }
+
+
+    // ================= REMOVE WISHLIST =================
+
+    function removeFromWishlist(productId) {
+
+      wishlist =
+        wishlist.filter(id =>
+          id !== productId
+        );
+
+
+     localStorage.setItem(
+  "wishlist",
+  JSON.stringify(wishlist)
+);
+
+renderWishlist();
+
+updateWishlistCount();
+
+    }
+
+
+    // ================= ADD TO CART =================
+
+    function addToCart(productId) {
+
+      const product =
+        products.find(
+          item => item._id === productId
+        );
+
+
+      if (!product) {
+        return;
+      }
+
+
+      let cart =
+        JSON.parse(localStorage.getItem("cart")) || [];
+
+
+      const existingProduct =
+        cart.find(
+          item => item._id === productId
+        );
+
+
+      if (existingProduct) {
+
+        existingProduct.quantity += 1;
+
+      } else {
+
+        cart.push({
+
+          _id: product._id,
+
+          name: product.name,
+
+          price: product.price,
+
+          image: product.image,
+
+          quantity: 1
+
+        });
+
+      }
+
+
+      localStorage.setItem(
+        "cart",
+        JSON.stringify(cart)
+      );
+
+
+      alert(
+        product.name +
+        " added to cart!"
+      );
+
+    }
+
+
+    // ================= START =================
+
+    loadWishlistProducts();
+
+  </script>
+
+</body>
+</html>

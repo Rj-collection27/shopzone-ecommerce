@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Admin Login</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>ShopZone Admin</h1>
+  </header>
+
+  <main>
+
+    <section class="products">
+
+      <h2>Admin Login</h2>
+
+      <form id="admin-login-form">
+
+        <input
+          type="email"
+          id="email"
+          placeholder="Admin Email"
+          required
+        >
+
+        <br><br>
+
+        <input
+          type="password"
+          id="password"
+          placeholder="Password"
+          required
+        >
+
+        <br><br>
+
+        <button type="submit">
+          Login
+        </button>
+
+      </form>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© 2026 ShopZone. All rights reserved.</p>
+  </footer>
+
+
+  <script>
+
+    document
+      .getElementById("admin-login-form")
+      .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const email =
+          document.getElementById("email").value;
+
+        const password =
+          document.getElementById("password").value;
+
+
+        try {
+
+          const response = await fetch(
+            "/api/users/login",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify({
+                email: email,
+                password: password
+              })
+            }
+          );
+
+
+          const result = await response.json();
+          console.log("LOGIN RESPONSE:", result);
+
+          if (response.ok) {
+
+            if (result.user.role !== "admin") {
+
+              alert("Access denied! Admin only.");
+
+              return;
+            }
+
+            localStorage.setItem(
+  "adminToken",
+  result.token
+);
+
+localStorage.setItem(
+  "admin",
+  JSON.stringify(result.user)
+);
+
+            alert("Admin Login Successful! 🎉");
+
+            window.location.href = "index.html";
+
+          } else {
+
+            alert(result.message);
+
+          }
+
+        } catch (error) {
+
+          console.log("Admin Login Error:", error);
+
+          alert("Something went wrong!");
+
+        }
+
+      });
+
+  </script>
+
+</body>
+
+</html>

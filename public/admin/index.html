@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>ShopZone - Admin Dashboard</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body class="admin-dashboard-page">
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="admin-header">
+
+    <div class="admin-logo">
+
+      <span class="admin-logo-icon">S</span>
+
+      <div>
+        <h1>ShopZone</h1>
+        <span>Admin Panel</span>
+      </div>
+
+    </div>
+
+
+    <nav class="admin-nav">
+
+      <a href="index.html" class="active">
+        Dashboard
+      </a>
+
+      <a href="products.html">
+        Products
+      </a>
+
+      <a href="orders.html">
+        Orders
+      </a>
+
+      <a href="users.html">
+        Users
+      </a>
+
+      <a href="categories.html">
+        Categories
+      </a>
+
+      <a href="../index.html" class="store-link">
+        Store ↗
+      </a>
+
+      <button
+        type="button"
+        class="admin-logout-btn"
+        onclick="logoutAdmin()"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- ================= MAIN DASHBOARD ================= -->
+
+  <main>
+
+    <section class="admin-dashboard">
+
+      <!-- DASHBOARD HEADING -->
+
+      <div class="admin-dashboard-heading">
+
+        <div>
+
+          <span>
+            SHOPZONE ADMIN PANEL
+          </span>
+
+          <h2>
+            Dashboard Overview
+          </h2>
+
+          <p>
+            Monitor your store performance, orders and sales.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= MAIN STATS ================= -->
+
+      <div
+        id="admin-stats"
+        class="admin-main-stats"
+      >
+
+        <div class="admin-stat-card">
+
+          <div class="admin-stat-icon">
+            🛍️
+          </div>
+
+          <div>
+            <h3>Total Products</h3>
+            <p id="total-products">Loading...</p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-stat-card">
+
+          <div class="admin-stat-icon">
+            📦
+          </div>
+
+          <div>
+            <h3>Total Orders</h3>
+            <p id="total-orders">Loading...</p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-stat-card">
+
+          <div class="admin-stat-icon">
+            👥
+          </div>
+
+          <div>
+            <h3>Total Users</h3>
+            <p id="total-users">Loading...</p>
+          </div>
+
+        </div>
+
+
+        <div class="admin-stat-card">
+
+          <div class="admin-stat-icon">
+            💰
+          </div>
+
+          <div>
+            <h3>Total Sales</h3>
+            <p id="total-sales">Loading...</p>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= SALES ANALYTICS ================= -->
+
+      <div class="admin-section-title">
+
+        <div>
+
+          <span>
+            SALES ANALYTICS
+          </span>
+
+          <h2>
+            Sales Overview
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="sales-analytics-grid">
+
+
+        <div class="analytics-card online-sales-card">
+
+          <div class="analytics-icon">
+            💳
+          </div>
+
+          <div>
+
+            <h3>
+              Online Sales
+            </h3>
+
+            <p id="online-sales">
+              ₹0
+            </p>
+
+            <span>
+              Razorpay / Online Payments
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="analytics-card cod-sales-card">
+
+          <div class="analytics-icon">
+            💵
+          </div>
+
+          <div>
+
+            <h3>
+              COD Sales
+            </h3>
+
+            <p id="cod-sales">
+              ₹0
+            </p>
+
+            <span>
+              Cash on Delivery
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+          <div class="analytics-icon">
+            📈
+          </div>
+
+          <div>
+
+            <h3>
+              Average Order Value
+            </h3>
+
+            <p id="average-order">
+              ₹0
+            </p>
+
+            <span>
+              Average amount per order
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+          <div class="analytics-icon">
+            ✅
+          </div>
+
+          <div>
+
+            <h3>
+              Delivered Revenue
+            </h3>
+
+            <p id="delivered-sales">
+              ₹0
+            </p>
+
+            <span>
+              Revenue from delivered orders
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= ORDER STATUS ================= -->
+
+      <div class="admin-section-title">
+
+        <div>
+
+          <span>
+            ORDER MANAGEMENT
+          </span>
+
+          <h2>
+            Order Status Overview
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="order-status-grid">
+
+
+        <div class="order-status-card pending">
+
+          <div class="order-status-icon">
+            ⏳
+          </div>
+
+          <div>
+
+            <h3>
+              Pending
+            </h3>
+
+            <p id="pending-orders">
+              0
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="order-status-card confirmed">
+
+          <div class="order-status-icon">
+            ✓
+          </div>
+
+          <div>
+
+            <h3>
+              Confirmed
+            </h3>
+
+            <p id="confirmed-orders">
+              0
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="order-status-card shipped">
+
+          <div class="order-status-icon">
+            🚚
+          </div>
+
+          <div>
+
+            <h3>
+              Shipped
+            </h3>
+
+            <p id="shipped-orders">
+              0
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="order-status-card delivered">
+
+          <div class="order-status-icon">
+            📦
+          </div>
+
+          <div>
+
+            <h3>
+              Delivered
+            </h3>
+
+            <p id="delivered-orders">
+              0
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="order-status-card cancelled">
+
+          <div class="order-status-icon">
+            ✕
+          </div>
+
+          <div>
+
+            <h3>
+              Cancelled
+            </h3>
+
+            <p id="cancelled-orders">
+              0
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= RECENT ORDERS ================= -->
+
+      <div class="admin-section-title recent-orders-heading">
+
+        <div>
+
+          <span>
+            ORDER ACTIVITY
+          </span>
+
+          <h2>
+            Recent Orders
+          </h2>
+
+        </div>
+
+        <a href="orders.html">
+          View All Orders →
+        </a>
+
+      </div>
+
+
+      <div
+        id="orders-list"
+        class="admin-orders-list"
+      >
+
+        <div class="admin-loading">
+          Loading orders...
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="admin-footer">
+
+    <p>
+      © 2026 ShopZone Admin Panel
+    </p>
+
+    <span>
+      Secure Admin Dashboard
+    </span>
+
+  </footer>
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script>
+
+    /* ================= ADMIN PROTECTION ================= */
+
+    const admin =
+      JSON.parse(
+        localStorage.getItem("admin")
+      );
+
+    const adminToken =
+      localStorage.getItem("adminToken");
+
+
+    if (
+      !admin ||
+      admin.role !== "admin" ||
+      !adminToken
+    ) {
+
+      alert("Access denied! Admin only.");
+
+      window.location.href =
+        "login.html";
+
+    }
+
+
+    /* ================= LOGOUT ================= */
+
+    function logoutAdmin() {
+
+      const confirmLogout =
+        confirm(
+          "Are you sure you want to logout?"
+        );
+
+      if (!confirmLogout) {
+        return;
+      }
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+      window.location.href =
+        "/admin/login.html";
+
+    }
+
+
+    /* ================= DASHBOARD ================= */
+
+    async function loadDashboard() {
+
+      try {
+
+        /* PRODUCTS */
+
+        const productsResponse =
+          await fetch(
+            "/api/products"
+          );
+
+
+        if (!productsResponse.ok) {
+
+          throw new Error(
+            "Failed to load products"
+          );
+
+        }
+
+
+        const products =
+          await productsResponse.json();
+
+
+        /* ORDERS */
+
+        const ordersResponse =
+          await fetch(
+            "/api/orders",
+            {
+              headers: {
+                "Authorization":
+                  "Bearer " +
+                  adminToken
+              }
+            }
+          );
+
+
+        if (!ordersResponse.ok) {
+
+          throw new Error(
+            "Failed to load orders"
+          );
+
+        }
+
+
+        const orders =
+          await ordersResponse.json();
+
+
+        /* USERS */
+
+        const usersResponse =
+          await fetch(
+            "/api/users",
+            {
+              headers: {
+                "Authorization":
+                  "Bearer " +
+                  adminToken
+              }
+            }
+          );
+
+
+        if (!usersResponse.ok) {
+
+          throw new Error(
+            "Failed to load users"
+          );
+
+        }
+
+
+        const users =
+          await usersResponse.json();
+
+
+        /* BASIC STATS */
+
+        document.getElementById(
+          "total-products"
+        ).innerText =
+          products.length;
+
+
+        document.getElementById(
+          "total-orders"
+        ).innerText =
+          orders.length;
+
+
+        document.getElementById(
+          "total-users"
+        ).innerText =
+          users.length;
+
+
+        /* SALES */
+
+        let totalSales = 0;
+        let onlineSales = 0;
+        let codSales = 0;
+        let deliveredSales = 0;
+
+
+        /* STATUS */
+
+        let pendingOrders = 0;
+        let confirmedOrders = 0;
+        let shippedOrders = 0;
+        let deliveredOrders = 0;
+        let cancelledOrders = 0;
+
+
+        /* PROCESS ORDERS */
+
+        orders.forEach(
+          (order) => {
+
+            const amount =
+              Number(
+                order.totalAmount
+              ) || 0;
+
+
+            const status =
+              (
+                order.status ||
+                "Pending"
+              ).toLowerCase();
+
+
+            const payment =
+              (
+                order.paymentMethod ||
+                ""
+              ).toLowerCase();
+
+
+            /* TOTAL SALES */
+
+            if (
+              status !== "cancelled"
+            ) {
+
+              totalSales +=
+                amount;
+
+            }
+
+
+            /* ONLINE */
+
+            if (
+              payment === "online" &&
+              status !== "cancelled"
+            ) {
+
+              onlineSales +=
+                amount;
+
+            }
+
+
+            /* COD */
+
+            if (
+              payment === "cod" &&
+              status !== "cancelled"
+            ) {
+
+              codSales +=
+                amount;
+
+            }
+
+
+            /* DELIVERED */
+
+            if (
+              status === "delivered"
+            ) {
+
+              deliveredSales +=
+                amount;
+
+            }
+
+
+            /* STATUS */
+
+            if (
+              status === "pending"
+            ) {
+
+              pendingOrders++;
+
+            }
+
+            else if (
+              status === "confirmed"
+            ) {
+
+              confirmedOrders++;
+
+            }
+
+            else if (
+              status === "shipped"
+            ) {
+
+              shippedOrders++;
+
+            }
+
+            else if (
+              status === "delivered"
+            ) {
+
+              deliveredOrders++;
+
+            }
+
+            else if (
+              status === "cancelled"
+            ) {
+
+              cancelledOrders++;
+
+            }
+
+          }
+        );
+
+
+        /* AVERAGE ORDER */
+
+        const validOrders =
+          orders.filter(
+            order =>
+              (
+                order.status ||
+                ""
+              ).toLowerCase() !==
+              "cancelled"
+          );
+
+
+        let averageOrder = 0;
+
+
+        if (
+          validOrders.length > 0
+        ) {
+
+          averageOrder =
+            totalSales /
+            validOrders.length;
+
+        }
+
+
+        /* DISPLAY SALES */
+
+        document.getElementById(
+          "total-sales"
+        ).innerText =
+          "₹" +
+          totalSales.toLocaleString(
+            "en-IN"
+          );
+
+
+        document.getElementById(
+          "online-sales"
+        ).innerText =
+          "₹" +
+          onlineSales.toLocaleString(
+            "en-IN"
+          );
+
+
+        document.getElementById(
+          "cod-sales"
+        ).innerText =
+          "₹" +
+          codSales.toLocaleString(
+            "en-IN"
+          );
+
+
+        document.getElementById(
+          "average-order"
+        ).innerText =
+          "₹" +
+          Math.round(
+            averageOrder
+          ).toLocaleString(
+            "en-IN"
+          );
+
+
+        document.getElementById(
+          "delivered-sales"
+        ).innerText =
+          "₹" +
+          deliveredSales.toLocaleString(
+            "en-IN"
+          );
+
+
+        /* ORDER STATUS */
+
+        document.getElementById(
+          "pending-orders"
+        ).innerText =
+          pendingOrders;
+
+
+        document.getElementById(
+          "confirmed-orders"
+        ).innerText =
+          confirmedOrders;
+
+
+        document.getElementById(
+          "shipped-orders"
+        ).innerText =
+          shippedOrders;
+
+
+        document.getElementById(
+          "delivered-orders"
+        ).innerText =
+          deliveredOrders;
+
+
+        document.getElementById(
+          "cancelled-orders"
+        ).innerText =
+          cancelledOrders;
+
+
+        /* RECENT ORDERS */
+
+        const ordersList =
+          document.getElementById(
+            "orders-list"
+          );
+
+
+        ordersList.innerHTML = "";
+
+
+        if (
+          orders.length === 0
+        ) {
+
+          ordersList.innerHTML = `
+
+            <div class="admin-empty">
+
+              <div class="admin-empty-icon">
+                📦
+              </div>
+
+              <h3>
+                No Orders Found
+              </h3>
+
+              <p>
+                There are no orders available yet.
+              </p>
+
+            </div>
+
+          `;
+
+          return;
+
+        }
+
+
+        const recentOrders =
+          orders.slice(0, 6);
+
+
+        recentOrders.forEach(
+          (order) => {
+
+            const orderCard =
+              document.createElement(
+                "div"
+              );
+
+
+            orderCard.className =
+              "admin-order-card";
+
+
+            const status =
+              order.status ||
+              "Pending";
+
+
+            const statusClass =
+              status.toLowerCase();
+
+
+            const orderDate =
+              order.createdAt
+                ? new Date(
+                    order.createdAt
+                  ).toLocaleDateString(
+                    "en-IN"
+                  )
+                : "N/A";
+
+
+            orderCard.innerHTML = `
+
+              <div class="admin-order-left">
+
+                <div class="admin-order-icon">
+                  📦
+                </div>
+
+                <div>
+
+                  <span class="admin-order-label">
+                    ORDER ID
+                  </span>
+
+                  <h3>
+                    ${order._id}
+                  </h3>
+
+                  <p>
+                    Customer:
+                    <strong>
+                      ${order.customerName || "N/A"}
+                    </strong>
+                  </p>
+
+                </div>
+
+              </div>
+
+
+              <div class="admin-order-middle">
+
+                <span>
+                  Amount
+                </span>
+
+                <strong>
+                  ₹${Number(
+                    order.totalAmount || 0
+                  ).toLocaleString("en-IN")}
+                </strong>
+
+              </div>
+
+
+              <div class="admin-order-payment">
+
+                <span>
+                  Payment
+                </span>
+
+                <strong>
+                  ${order.paymentMethod || "N/A"}
+                </strong>
+
+              </div>
+
+
+              <div class="admin-order-date">
+
+                <span>
+                  Date
+                </span>
+
+                <strong>
+                  ${orderDate}
+                </strong>
+
+              </div>
+
+
+              <div>
+
+                <span class="
+                  admin-order-status
+                  ${statusClass}
+                ">
+
+                  ${status}
+
+                </span>
+
+              </div>
+
+            `;
+
+
+            ordersList.appendChild(
+              orderCard
+            );
+
+          }
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Dashboard Error:",
+          error
+        );
+
+
+        document.getElementById(
+          "orders-list"
+        ).innerHTML = `
+
+          <div class="admin-dashboard-error">
+
+            <h3>
+              ⚠️ Dashboard Error
+            </h3>
+
+            <p>
+              Unable to load dashboard data.
+            </p>
+
+            <p>
+              Please refresh the page or login again.
+            </p>
+
+          </div>
+
+        `;
+
+      }
+
+    }
+
+
+    /* ================= INITIAL LOAD ================= */
+
+    loadDashboard();
+
+  </script>
+
+</body>
+
+</html>

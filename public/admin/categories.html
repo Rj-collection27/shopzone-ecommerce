@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>ShopZone - Manage Categories</title>
+
+  <link
+    rel="stylesheet"
+    href="../css/style.css"
+  >
+
+</head>
+
+
+<body class="admin-categories-page">
+
+
+  <!-- ================= HEADER ================= -->
+
+  <header class="admin-header">
+
+    <div class="admin-logo">
+
+      <span class="admin-logo-icon">
+        S
+      </span>
+
+      <div>
+
+        <h1>ShopZone</h1>
+
+        <span>Admin Panel</span>
+
+      </div>
+
+    </div>
+
+
+    <nav class="admin-nav">
+
+      <a href="index.html">
+        Dashboard
+      </a>
+
+      <a href="products.html">
+        Products
+      </a>
+
+      <a href="orders.html">
+        Orders
+      </a>
+
+      <a href="users.html">
+        Users
+      </a>
+
+      <a
+        href="categories.html"
+        class="active"
+      >
+        Categories
+      </a>
+
+      <a
+        href="../index.html"
+        class="store-link"
+      >
+        Store ↗
+      </a>
+
+      <button
+        type="button"
+        class="admin-logout-btn"
+        onclick="logoutAdmin()"
+      >
+        Logout
+      </button>
+
+    </nav>
+
+  </header>
+
+
+  <!-- ================= MAIN ================= -->
+
+  <main class="admin-categories-main">
+
+
+    <!-- PAGE HEADING -->
+
+    <section class="admin-page-heading">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          PRODUCT ORGANIZATION
+        </span>
+
+        <h2>
+          Manage Categories
+        </h2>
+
+        <p>
+          Create and manage product categories for your ShopZone store.
+        </p>
+
+      </div>
+
+
+      <div class="categories-count-box">
+
+        <span>
+          Total Categories
+        </span>
+
+        <strong id="total-categories">
+          0
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= ADD CATEGORY ================= -->
+
+    <section class="category-add-card">
+
+      <div class="category-add-heading">
+
+        <div class="category-add-icon">
+          +
+        </div>
+
+        <div>
+
+          <span class="admin-eyebrow">
+            CREATE NEW
+          </span>
+
+          <h3>
+            Add Category
+          </h3>
+
+          <p>
+            Add a new category to organize your products.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="category-form">
+
+        <div class="category-input-wrapper">
+
+          <label for="category-name">
+            Category Name
+          </label>
+
+          <input
+            type="text"
+            id="category-name"
+            placeholder="e.g. Mobiles, Laptops, Accessories"
+            autocomplete="off"
+          >
+
+        </div>
+
+
+        <button
+          class="add-category-btn"
+          onclick="addCategory()"
+        >
+          <span>＋</span>
+          Add Category
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= CATEGORY TOOLBAR ================= -->
+
+    <section class="categories-toolbar">
+
+      <div>
+
+        <span class="admin-eyebrow">
+          STORE CATEGORIES
+        </span>
+
+        <h3>
+          All Categories
+        </h3>
+
+      </div>
+
+
+      <div class="category-search">
+
+        <span>
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          id="category-search"
+          placeholder="Search categories..."
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= CATEGORY LIST ================= -->
+
+    <section>
+
+      <div id="categories-list">
+
+        <div class="categories-loading">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading categories...
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <footer class="admin-footer">
+
+    <p>
+      © 2026 ShopZone Admin Panel
+    </p>
+
+    <span>
+      Secure Category Management
+    </span>
+
+  </footer>
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script>
+
+
+    /* ================= ADMIN PROTECTION ================= */
+
+    const admin =
+      JSON.parse(
+        localStorage.getItem("admin")
+      );
+
+    const adminToken =
+      localStorage.getItem("adminToken");
+
+
+    if (
+      !admin ||
+      admin.role !== "admin" ||
+      !adminToken
+    ) {
+
+      alert(
+        "Access denied! Admin only."
+      );
+
+      window.location.href =
+        "login.html";
+
+    }
+
+
+    /* ================= LOGOUT ================= */
+
+    function logoutAdmin() {
+
+      const confirmLogout =
+        confirm(
+          "Are you sure you want to logout?"
+        );
+
+
+      if (!confirmLogout) {
+
+        return;
+
+      }
+
+
+      localStorage.removeItem(
+        "adminToken"
+      );
+
+      localStorage.removeItem(
+        "admin"
+      );
+
+
+      window.location.href =
+        "/admin/login.html";
+
+    }
+
+
+    /* ================= DATA ================= */
+
+    let allCategories = [];
+
+
+    /* ================= LOAD CATEGORIES ================= */
+
+    async function loadCategories() {
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/categories"
+          );
+
+
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+
+          alert(
+            "Admin session expired. Please login again."
+          );
+
+          logoutAdmin();
+
+          return;
+
+        }
+
+
+        if (!response.ok) {
+
+          throw new Error(
+            "Failed to load categories"
+          );
+
+        }
+
+
+        const categories =
+          await response.json();
+
+
+        allCategories =
+          categories;
+
+
+        document
+          .getElementById(
+            "total-categories"
+          )
+          .textContent =
+          categories.length;
+
+
+        displayCategories(
+          categories
+        );
+
+
+      } catch (error) {
+
+        console.log(
+          "Error loading categories:",
+          error
+        );
+
+
+        document
+          .getElementById(
+            "categories-list"
+          )
+          .innerHTML = `
+
+            <div class="categories-error">
+
+              <div>
+                ⚠️
+              </div>
+
+              <h3>
+                Unable to Load Categories
+              </h3>
+
+              <p>
+                Please make sure the server is running.
+              </p>
+
+              <button onclick="loadCategories()">
+                Try Again
+              </button>
+
+            </div>
+
+          `;
+
+      }
+
+    }
+
+
+    /* ================= DISPLAY CATEGORIES ================= */
+
+    function displayCategories(
+      categories
+    ) {
+
+      const categoriesList =
+        document.getElementById(
+          "categories-list"
+        );
+
+
+      categoriesList.innerHTML = "";
+
+
+      if (
+        categories.length === 0
+      ) {
+
+        categoriesList.innerHTML = `
+
+          <div class="categories-empty">
+
+            <div>
+              📂
+            </div>
+
+            <h3>
+              No Categories Found
+            </h3>
+
+            <p>
+              Add your first product category above.
+            </p>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+
+      const grid =
+        document.createElement(
+          "div"
+        );
+
+
+      grid.className =
+        "categories-grid";
+
+
+      categories.forEach(
+        (category, index) => {
+
+          const categoryCard =
+            document.createElement(
+              "div"
+            );
+
+
+          categoryCard.className =
+            "admin-category-card";
+
+
+          categoryCard.innerHTML = `
+
+            <div class="category-card-icon">
+              ${getCategoryIcon(category.name)}
+            </div>
+
+
+            <div class="category-card-info">
+
+              <span>
+                CATEGORY ${String(index + 1).padStart(2, "0")}
+              </span>
+
+              <h3>
+                ${escapeHTML(category.name)}
+              </h3>
+
+            </div>
+
+
+            <button
+              class="delete-category-btn"
+              onclick="deleteCategory('${category._id}')"
+              title="Delete Category"
+            >
+              🗑️
+            </button>
+
+          `;
+
+
+          grid.appendChild(
+            categoryCard
+          );
+
+        }
+      );
+
+
+      categoriesList.appendChild(
+        grid
+      );
+
+    }
+
+
+    /* ================= ESCAPE HTML ================= */
+
+    function escapeHTML(
+      value
+    ) {
+
+      return String(value || "")
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    /* ================= CATEGORY ICON ================= */
+
+    function getCategoryIcon(
+      name
+    ) {
+
+      const category =
+        String(name || "")
+          .toLowerCase();
+
+
+      if (
+        category.includes("mobile") ||
+        category.includes("phone")
+      ) {
+
+        return "📱";
+
+      }
+
+
+      if (
+        category.includes("laptop") ||
+        category.includes("computer")
+      ) {
+
+        return "💻";
+
+      }
+
+
+      if (
+        category.includes("access")
+      ) {
+
+        return "🎧";
+
+      }
+
+
+      if (
+        category.includes("watch")
+      ) {
+
+        return "⌚";
+
+      }
+
+
+      if (
+        category.includes("camera")
+      ) {
+
+        return "📷";
+
+      }
+
+
+      if (
+        category.includes("tv") ||
+        category.includes("television")
+      ) {
+
+        return "📺";
+
+      }
+
+
+      if (
+        category.includes("fashion") ||
+        category.includes("cloth")
+      ) {
+
+        return "👕";
+
+      }
+
+
+      if (
+        category.includes("shoe")
+      ) {
+
+        return "👟";
+
+      }
+
+
+      return "📦";
+
+    }
+
+
+    /* ================= ADD CATEGORY ================= */
+
+    async function addCategory() {
+
+      const input =
+        document.getElementById(
+          "category-name"
+        );
+
+
+      const name =
+        input.value.trim();
+
+
+      if (!name) {
+
+        alert(
+          "Please enter category name."
+        );
+
+        input.focus();
+
+        return;
+
+      }
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/categories",
+            {
+
+              method: "POST",
+
+              headers: {
+
+                "Content-Type":
+                  "application/json",
+
+                "Authorization":
+                  "Bearer " +
+                  adminToken
+
+              },
+
+              body:
+                JSON.stringify({
+                  name: name
+                })
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+
+          alert(
+            "Admin session expired. Please login again."
+          );
+
+          logoutAdmin();
+
+          return;
+
+        }
+
+
+        if (response.ok) {
+
+          alert(
+            "Category added successfully!"
+          );
+
+
+          input.value = "";
+
+
+          await loadCategories();
+
+
+        } else {
+
+          console.log(
+            "CATEGORY ADD ERROR:",
+            data
+          );
+
+
+          alert(
+            "Category add failed!\n\n" +
+            (
+              data.message ||
+              "Unknown error"
+            )
+          );
+
+        }
+
+      } catch (error) {
+
+        console.log(
+          "Error adding category:",
+          error
+        );
+
+
+        alert(
+          "Something went wrong!"
+        );
+
+      }
+
+    }
+
+
+    /* ================= DELETE CATEGORY ================= */
+
+    async function deleteCategory(
+      id
+    ) {
+
+      const category =
+        allCategories.find(
+          item =>
+            item._id === id
+        );
+
+
+      const categoryName =
+        category
+          ? category.name
+          : "this category";
+
+
+      const confirmDelete =
+        confirm(
+          `Are you sure you want to delete "${categoryName}"?`
+        );
+
+
+      if (!confirmDelete) {
+
+        return;
+
+      }
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/categories/" + id,
+            {
+
+              method: "DELETE",
+
+              headers: {
+
+                "Authorization":
+                  "Bearer " +
+                  adminToken
+
+              }
+
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          response.status === 401 ||
+          response.status === 403
+        ) {
+
+          alert(
+            "Admin session expired. Please login again."
+          );
+
+          logoutAdmin();
+
+          return;
+
+        }
+
+
+        if (response.ok) {
+
+          alert(
+            "Category deleted successfully!"
+          );
+
+
+          await loadCategories();
+
+
+        } else {
+
+          console.log(
+            "CATEGORY DELETE ERROR:",
+            data
+          );
+
+
+          alert(
+            "Category delete failed!\n\n" +
+            (
+              data.message ||
+              "Unknown error"
+            )
+          );
+
+        }
+
+      } catch (error) {
+
+        console.log(
+          "Error deleting category:",
+          error
+        );
+
+
+        alert(
+          "Something went wrong!"
+        );
+
+      }
+
+    }
+
+
+    /* ================= SEARCH ================= */
+
+    document
+      .getElementById(
+        "category-search"
+      )
+      .addEventListener(
+        "input",
+        function() {
+
+          const search =
+            this.value
+              .toLowerCase()
+              .trim();
+
+
+          const filteredCategories =
+            allCategories.filter(
+              category =>
+                String(
+                  category.name || ""
+                )
+                  .toLowerCase()
+                  .includes(search)
+            );
+
+
+          displayCategories(
+            filteredCategories
+          );
+
+        }
+      );
+
+
+    /* ================= ENTER KEY ================= */
+
+    document
+      .getElementById(
+        "category-name"
+      )
+      .addEventListener(
+        "keydown",
+        function(event) {
+
+          if (
+            event.key === "Enter"
+          ) {
+
+            addCategory();
+
+          }
+
+        }
+      );
+
+
+    /* ================= INITIAL LOAD ================= */
+
+    loadCategories();
+
+
+  </script>
+
+
+</body>
+
+</html>
