@@ -426,6 +426,7 @@ document
           // CREATE SHOPZONE ORDER
           // =========================
           const currentToken = localStorage.getItem("token");
+          console.log("ORDER TOKEN EXISTS:", !!currentToken);
           const orderData = {
 
             customerName: name,
