@@ -1,558 +1,254 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>ShopZone - Checkout</title>
-
-  <link rel="stylesheet" href="css/style.css">
+  <title>ShopZone Checkout</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 15px; }
+    input, textarea, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
+    button { cursor: pointer; }
+    #message { color: #b00020; }
+  </style>
 </head>
-
 <body>
+  <h2>ShopZone Checkout</h2>
 
-  <header>
-    <h1>ShopZone</h1>
+  <div id="cartSummary"></div>
+  <h3 id="total"></h3>
 
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="cart.html">Cart 🛒</a>
-    </nav>
-  </header>
+  <form id="checkoutForm">
+    <input id="customerName" placeholder="Full Name" required>
+    <input id="email" type="email" placeholder="Email" required>
+    <input id="phone" type="tel" placeholder="Phone Number" required>
+    <textarea id="address" placeholder="Full Address" required></textarea>
 
+    <button type="submit" id="codButton">Place COD Order</button>
+    <button type="button" id="onlineButton">Pay Online with Razorpay</button>
+  </form>
 
-  <main>
-
-    <section class="products">
-
-      <h2>Checkout</h2>
-
-      <div id="checkout-items">
-        <!-- Order items will appear here -->
-      </div>
-
-      <h3 id="checkout-total"></h3>
-
-      <br>
-
-      <h3>Customer Details</h3>
-
-      <br>
-
-      <form id="checkout-form">
-
-        <label>
-          Full Name
-        </label>
-
-        <br>
-
-        <input
-          type="text"
-          id="name"
-          required
-        >
-
-        <br><br>
-
-
-        <label>
-          Email
-        </label>
-
-        <br>
-
-        <input
-          type="email"
-          id="email"
-          required
-        >
-
-        <br><br>
-
-
-        <label>
-          Phone Number
-        </label>
-
-        <br>
-
-        <input
-          type="tel"
-          id="phone"
-          required
-        >
-
-        <br><br>
-
-
-        <label>
-          Delivery Address
-        </label>
-
-        <br>
-
-        <textarea
-          id="address"
-          rows="4"
-          required
-        ></textarea>
-
-        <br><br>
-
-
-        <label>
-          Payment Method
-        </label>
-
-        <br>
-
-        <select id="payment">
-          <option value="COD">Cash on Delivery</option>
-          <option value="ONLINE">Online Payment</option>
-        </select>
-
-        <br><br>
-
-
-        <button type="submit">
-          Place Order
-        </button>
-
-      </form>
-
-    </section>
-
-  </main>
-
-
-  <footer>
-    <p>© 2026 ShopZone. All rights reserved.</p>
-  </footer>
-
+  <p id="message"></p>
 
   <script>
+    const token = localStorage.getItem("token");
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-const token = localStorage.getItem("token");
+    const message = document.getElementById("message");
+    const codButton = document.getElementById("codButton");
+    const onlineButton = document.getElementById("onlineButton");
 
-const checkoutItems = document.getElementById("checkout-items");
-const checkoutTotal = document.getElementById("checkout-total");
-
-
-function displayCheckout() {
-
-  checkoutItems.innerHTML = "";
-
-  if (cart.length === 0) {
-
-    checkoutItems.innerHTML = "<p>Your cart is empty.</p>";
-    checkoutTotal.innerText = "";
-
-    return;
-  }
-
-  let total = 0;
-
-  cart.forEach((product) => {
-
-    const itemTotal = product.price * product.quantity;
-
-    total += itemTotal;
-
-    const item = document.createElement("div");
-
-    item.innerHTML = `
-      <p>
-        <strong>${product.name}</strong>
-        × ${product.quantity}
-        — ₹${itemTotal}
-      </p>
-    `;
-
-    checkoutItems.appendChild(item);
-
-  });
-
-  checkoutTotal.innerText = "Total Amount: ₹" + total;
-
-}
-
-
-document
-  .getElementById("checkout-form")
-  .addEventListener("submit", async function(event) {
-
-    event.preventDefault();
-
-    if (cart.length === 0) {
-
-      alert("Your cart is empty!");
-
-      return;
+    function showMessage(text) {
+      message.textContent = text;
     }
 
+    function getCartItems() {
+      return cart.map(item => ({
+        productId: item.productId || item._id,
+        quantity: Number(item.quantity)
+      }));
+    }
 
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const phone = document.getElementById("phone").value;
-    const address = document.getElementById("address").value;
-    const payment = document.getElementById("payment").value;
-
-
-    let total = 0;
-
-    cart.forEach((product) => {
-
-      total += product.price * product.quantity;
-
-    });
-
-
-    // =========================
-    // COD ORDER
-    // =========================
-
-    if (payment === "COD") {
-
-      const orderData = {
-
-        customerName: name,
-        email: email,
-        phone: phone,
-        address: address,
-
-        items: cart.map((product) => ({
-
-          productId: product._id,
-          name: product.name,
-          price: product.price,
-          quantity: product.quantity
-
-        })),
-
-        totalAmount: total,
-
-        paymentMethod: "COD",
-
-        status: "Pending"
-
+    function getCustomerDetails() {
+      return {
+        customerName: document.getElementById("customerName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        address: document.getElementById("address").value.trim()
       };
+    }
 
+    function validateCheckout() {
+      if (!token) {
+        showMessage("Please log in first.");
+        return false;
+      }
+
+      if (!cart.length) {
+        showMessage("Your cart is empty.");
+        return false;
+      }
+
+      if (!document.getElementById("checkoutForm").reportValidity()) {
+        return false;
+      }
+
+      return true;
+    }
+
+    async function sendRequest(url, data) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Request failed");
+      }
+
+      return result;
+    }
+
+    function finishOrder(orderId) {
+      localStorage.removeItem("cart");
+      alert("Order successful! Order ID: " + orderId);
+      window.location.href = "my-orders.html";
+    }
+
+    // Display cart summary only; final price comes from server
+    const summary = document.getElementById("cartSummary");
+
+    if (!cart.length) {
+      summary.textContent = "Your cart is empty.";
+    } else {
+      cart.forEach(item => {
+        const line = document.createElement("p");
+        line.textContent =
+          (item.name || item.title || "Product") +
+          " × " + item.quantity;
+        summary.appendChild(line);
+      });
+    }
+
+    document.getElementById("total").textContent =
+      "Final total will be calculated securely by the server.";
+
+    // COD order
+    document.getElementById("checkoutForm").addEventListener("submit", async event => {
+      event.preventDefault();
+
+      if (!validateCheckout()) return;
+
+      codButton.disabled = true;
+      onlineButton.disabled = true;
+      showMessage("Placing COD order...");
 
       try {
-
-        const response = await fetch("/api/orders", {
-
-          method: "POST",
-
-        headers: {
-         "Content-Type": "application/json",
-         "Authorization": "Bearer " + token
-       },
-
-          body: JSON.stringify(orderData)
-
+        const result = await sendRequest("/api/orders", {
+          ...getCustomerDetails(),
+          items: getCartItems(),
+          paymentMethod: "COD"
         });
 
-
-        const result = await response.json();
-
-
-       if (!response.ok) {
-
-  alert(
-    "Order failed!\n\nReason: " +
-    (result.message || "Unknown error")
-  );
-
-  console.log("Order Error:", result);
-
-  return;
-}
-
-
-        alert(
-          "Order placed successfully! 🎉\nOrder ID: " +
-          result._id
-        );
-
-
-        localStorage.removeItem("cart");
-
-        window.location.href = "index.html";
-
-
+        finishOrder(result._id);
       } catch (error) {
+        showMessage(error.message);
+        codButton.disabled = false;
+        onlineButton.disabled = false;
+      }
+    });
 
-        console.log("Order Error:", error);
+    // Online order
+    onlineButton.addEventListener("click", async () => {
+      if (!validateCheckout()) return;
 
-        alert(
-          "Something went wrong while placing the order."
-        );
-
+      if (typeof Razorpay === "undefined") {
+        showMessage("Razorpay checkout could not load. Please try again.");
+        return;
       }
 
-      return;
-    }
+      codButton.disabled = true;
+      onlineButton.disabled = true;
+      showMessage("Creating secure payment order...");
 
+      try {
+        const paymentData = await sendRequest("/api/payment/create-order", {
+          ...getCustomerDetails(),
+          items: getCartItems()
+        });
 
-    // =========================
-    // ONLINE PAYMENT
-    // =========================
+        const options = {
+          key: paymentData.keyId,
+          amount: paymentData.order.amount,
+          currency: paymentData.order.currency,
+          name: "ShopZone",
+          description: "Order payment",
+          order_id: paymentData.order.id,
 
-    try {
+          handler: async function (paymentResponse) {
+            showMessage("Verifying payment...");
 
-      // Create Razorpay Order
+            try {
+              const verified = await sendRequest("/api/payment/verify", {
+                ...paymentResponse
+              });
 
-      const paymentResponse = await fetch(
-        "/api/payment/create-order",
-        {
-
-          method: "POST",
-
-          headers: {
-
-            "Content-Type": "application/json"
-
+              if (verified.success) {
+                finishOrder(verified.orderId || paymentData.shopZoneOrderId);
+              } else {
+                showMessage("Payment could not be verified. Contact support before retrying.");
+                codButton.disabled = false;
+                onlineButton.disabled = false;
+              }
+            } catch (error) {
+              showMessage(
+                "Payment result needs checking. Do not pay again yet. " +
+                error.message
+              );
+              codButton.disabled = false;
+              onlineButton.disabled = false;
+            }
           },
 
-          body: JSON.stringify({
-
-            amount: total
-
-          })
-
+          modal: {
+  ondismiss: async function () {
+    try {
+      const result = await sendRequest(
+        "/api/payment/release-stock",
+        {
+          shopZoneOrderId: paymentData.shopZoneOrderId
         }
       );
 
-
-      const paymentData = await paymentResponse.json();
-
-
-      if (!paymentResponse.ok) {
-
-        alert("Unable to start payment.");
-
-        console.log(paymentData);
-
-        return;
-
-      }
-
-
-      // Razorpay Options
-
-      const options = {
-
-        key: paymentData.keyId,
-
-        amount: paymentData.order.amount,
-
-        currency: paymentData.order.currency,
-
-        name: "ShopZone",
-
-        description: "ShopZone Order",
-
-        order_id: paymentData.order.id,
-
-
-        // =========================
-        // PAYMENT SUCCESS HANDLER
-        // =========================
-
-        handler: async function(response) {
-
-          console.log("Payment successful:", response);
-
-
-          // Verify payment on server
-
-          const verifyResponse = await fetch(
-            "/api/payment/verify",
-            {
-
-              method: "POST",
-
-              headers: {
-
-                "Content-Type": "application/json"
-
-              },
-
-              body: JSON.stringify({
-
-                razorpay_order_id:
-                  response.razorpay_order_id,
-
-                razorpay_payment_id:
-                  response.razorpay_payment_id,
-
-                razorpay_signature:
-                  response.razorpay_signature
-
-              })
-
-            }
-          );
-
-
-          const verifyResult =
-            await verifyResponse.json();
-
-
-          // Payment verification failed
-
-          if (
-            !verifyResponse.ok ||
-            !verifyResult.success
-          ) {
-
-            alert(
-              "Payment verification failed. Order was not created."
-            );
-
-            console.log(verifyResult);
-
-            return;
-
-          }
-
-
-          // =========================
-          // CREATE SHOPZONE ORDER
-          // =========================
-          const currentToken = localStorage.getItem("token");
-          console.log("ORDER TOKEN EXISTS:", !!currentToken);
-          const orderData = {
-
-            customerName: name,
-
-            email: email,
-
-            phone: phone,
-
-            address: address,
-
-            items: cart.map((product) => ({
-
-              productId: product._id,
-
-              name: product.name,
-
-              price: product.price,
-
-              quantity: product.quantity
-
-            })),
-
-            totalAmount: total,
-
-            paymentMethod: "ONLINE",
-
-            status: "Confirmed"
-
-          };
-
-
-          const orderResponse =
-            await fetch("/api/orders", {
-
-              method: "POST",
-
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + currentToken
-              },
-              body: JSON.stringify(orderData)
-
-            });
-
-
-          const orderResult =
-            await orderResponse.json();
-
-
-          if (!orderResponse.ok) {
-
-            alert(
-              "Payment verified, but order creation failed."
-            );
-
-            console.log(orderResult);
-
-            return;
-
-          }
-
-
-          alert(
-            "Payment successful! 🎉\nOrder ID: " +
-            orderResult._id
-          );
-
-
-          localStorage.removeItem("cart");
-
-          window.location.href = "index.html";
-
-        },
-
-
-        // Customer details
-
-        prefill: {
-
-          name: name,
-
-          email: email,
-
-          contact: phone
-
-        },
-
-
-        theme: {
-
-          color: "#3399cc"
-
-        }
-
-      };
-
-
-      // Open Razorpay
-
-      const razorpay =
-        new Razorpay(options);
-
-
-      razorpay.open();
-
-
+      showMessage(
+        "Payment window closed. " + result.message +
+        ". Check My Orders before trying again."
+      );
     } catch (error) {
-
-      console.log(
-        "Payment Error:",
-        error
+      showMessage(
+        "Payment window closed. " + error.message +
+        ". Check My Orders before retrying."
       );
-
-      alert(
-        "Something went wrong while starting payment."
-      );
-
+    } finally {
+      codButton.disabled = false;
+      onlineButton.disabled = false;
     }
+  }
+},
 
-  });
+          prefill: {
+            name: document.getElementById("customerName").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            contact: document.getElementById("phone").value.trim()
+          },
 
+          theme: { color: "#2874f0" }
+        };
 
-displayCheckout();
+        const checkout = new Razorpay(options);
 
-</script>
+        checkout.on("payment.failed", function () {
+          showMessage(
+            "Payment failed. Check your order status before trying again."
+          );
+          codButton.disabled = false;
+          onlineButton.disabled = false;
+        });
 
+        checkout.open();
+      } catch (error) {
+        showMessage(error.message);
+        codButton.disabled = false;
+        onlineButton.disabled = false;
+      }
+    });
+  </script>
 </body>
-
 </html>
