@@ -4,22 +4,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ShopZone Checkout</title>
+    <title>ShopZone Checkout</title>
+
+  <link rel="stylesheet" href="css/style.css">
+
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 30px auto; padding: 15px; }
-    input, textarea, button { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; }
-    button { cursor: pointer; }
-    #message { color: #b00020; }
+    #codButton,
+    #onlineButton {
+      width: auto;
+      min-width: 160px;
+      padding: 10px 18px;
+      margin: 8px 6px 8px 0;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    #message {
+      color: #b00020;
+      margin-top: 12px;
+    }
+
+    #checkout-form input,
+    #checkout-form textarea {
+      box-sizing: border-box;
+      max-width: 100%;
+    }
   </style>
 </head>
 <body>
+  <header class="main-header premium-header">
+  <div class="logo">
+    <h1>ShopZone</h1>
+    <span>SHOP • DISCOVER • ENJOY</span>
+  </div>
+
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="products.html">Products</a>
+    <a href="cart.html">Cart 🛒</a>
+    <a href="login.html">Login</a>
+  </nav>
+</header>
   <h2>ShopZone Checkout</h2>
 
-  <div id="cartSummary"></div>
-  <h3 id="total"></h3>
+ <div id="checkout-items"></div>
+<h3 id="checkout-total"></h3>
 
-  <form id="checkoutForm">
+<form id="checkout-form">
     <input id="customerName" placeholder="Full Name" required>
     <input id="email" type="email" placeholder="Email" required>
     <input id="phone" type="tel" placeholder="Phone Number" required>
@@ -70,7 +103,7 @@
         return false;
       }
 
-      if (!document.getElementById("checkoutForm").reportValidity()) {
+      if (!document.getElementById("checkout-form").reportValidity()) {
         return false;
       }
 
@@ -103,7 +136,7 @@
     }
 
     // Display cart summary only; final price comes from server
-    const summary = document.getElementById("cartSummary");
+const summary = document.getElementById("checkout-items");
 
     if (!cart.length) {
       summary.textContent = "Your cart is empty.";
@@ -117,12 +150,12 @@
       });
     }
 
-    document.getElementById("total").textContent =
-      "Final total will be calculated securely by the server.";
+   document.getElementById("checkout-total").textContent =
+  "Final total will be calculated securely by the server.";
 
     // COD order
-    document.getElementById("checkoutForm").addEventListener("submit", async event => {
-      event.preventDefault();
+document.getElementById("checkout-form").addEventListener("submit", async event => {
+        event.preventDefault();
 
       if (!validateCheckout()) return;
 
