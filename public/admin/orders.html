@@ -821,23 +821,30 @@
               </div>
 
 
-              <div class="order-info-box">
+              
+<div class="order-info-box">
 
-                <span class="order-info-label">
-                  PAYMENT
-                </span>
+  <span class="order-info-label">
+    PAYMENT
+  </span>
 
-                <strong
-                  class="${paymentClass}"
-                >
-                  ${order.paymentMethod || "Unknown"}
-                </strong>
+  <strong class="${paymentClass}">
+    ${order.paymentMethod || "Unknown"}
+  </strong>
 
-                <span>
-                  Payment Method
-                </span>
+  <span>
+    Payment Method
+  </span>
 
-              </div>
+  <strong>
+    ${order.paymentStatus || "Pending"}
+  </strong>
+
+  <span>
+    Payment Status
+  </span>
+
+</div>
 
             </div>
 
